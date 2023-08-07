@@ -6,7 +6,7 @@ const AdminPage = () => {
   const { user } = useContext(UserContext);
   const [content, setContent] = useState("You need to login....");
   useEffect(() => {
-    fetch("http://localhost:8000/user/isUserAuth", {
+    fetch("https://blog-post-backend-k70d.onrender.com/user/isUserAuth", {
       method: "POST",
       credentials: "include",
       headers: {

@@ -16,7 +16,7 @@ const Register = () => {
   const canSave = email && password && user_name;
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch("http://localhost:8000/user/register", {
+    fetch("https://blog-post-backend-k70d.onrender.com/user/register", {
       method: "post",
       headers: {
         "Content-Type": "application/json",

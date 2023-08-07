@@ -4,7 +4,7 @@ import axios from "axios";
 import { createSelector } from "@reduxjs/toolkit";
 export const getAllPost = createAsyncThunk("post/getAllPost", async () => {
   try {
-    const result = await axios.get("http://localhost:8000/post/getAllPost");
+    const result = await axios.get("https://blog-post-backend-k70d.onrender.com/post/getAllPost");
     const data = result.data;
     return data;
   } catch (error) {
@@ -16,7 +16,7 @@ export const updatePost = createAsyncThunk(
   async (updatedContent) => {
     try {
       const result = await axios.post(
-        "http://localhost:8000/post/updatePost",
+        "https://blog-post-backend-k70d.onrender.com/post/updatePost",
         updatedContent.details,
         {
           headers: {
@@ -37,7 +37,7 @@ export const retweetedPost = createAsyncThunk(
   async (retweetPost) => {
     try {
       const res = await axios.post(
-        "http://localhost:8000/post/retweetPost",
+        "https://blog-post-backend-k70d.onrender.com/post/retweetPost",
         retweetPost.details,
         {
           headers: { authorization: `Bearer ${retweetPost.token}` },
@@ -54,7 +54,7 @@ export const deletePost = createAsyncThunk(
   async (postId) => {
     try {
       const result = await axios.post(
-        "http://localhost:8000/post/deletePost",
+        "https://blog-post-backend-k70d.onrender.com/post/deletePost",
         postId.details,
         {
           headers: {
@@ -75,7 +75,7 @@ export const addEmoji = createAsyncThunk(
   async (updatedPost) => {
     try {
       const result = await axios.post(
-        "http://localhost:8000/post/addEmoji",
+        "https://blog-post-backend-k70d.onrender.com/post/addEmoji",
         updatedPost.details,
         {
           headers: {
@@ -96,7 +96,7 @@ export const addComment = createAsyncThunk(
   async (addComment) => {
     try {
       const result = await axios.post(
-        "http://localhost:8000/post/addComment",
+        "https://blog-post-backend-k70d.onrender.com/post/addComment",
         addComment.details,
         {
           headers: {
@@ -115,7 +115,7 @@ export const addComment = createAsyncThunk(
 export const addPost = createAsyncThunk("post/addPost", async (initialPost) => {
   try {
     const result = await axios.post(
-      "http://localhost:8000/post/addPost",
+      "https://blog-post-backend-k70d.onrender.com/post/addPost",
       initialPost.details,
       {
         headers: {

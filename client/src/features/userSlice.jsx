@@ -3,7 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 export const getAllUsers = createAsyncThunk("user/getAllUsers", async () => {
   try {
-    const result = await axios.get("http://localhost:8000/user/getAllUsers");
+    const result = await axios.get("https://blog-post-backend-k70d.onrender.com/user/getAllUsers");
     const data = result.data;
     return data;
   } catch (error) {
@@ -15,7 +15,7 @@ export const updatedUser = createAsyncThunk(
   async (updatedDetails) => {
     try {
       const result = await axios.post(
-        "http://localhost:8000/user/updateUser",
+        "https://blog-post-backend-k70d.onrender.com/user/updateUser",
         updatedDetails.details,
         {
           headers: {
@@ -38,7 +38,7 @@ export const deactivateUser = createAsyncThunk(
   async (updatedDetails) => {
     try {
       const result = await axios.post(
-        "http://localhost:8000/user/deactivateUser",
+        "https://blog-post-backend-k70d.onrender.com/user/deactivateUser",
         updatedDetails.details,
         {
           headers: {

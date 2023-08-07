@@ -21,7 +21,7 @@ const Login = () => {
   }, [user]);
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch("http://localhost:8000/user/login", {
+    fetch("https://blog-post-backend-k70d.onrender.com/user/login", {
       method: "post",
       credentials: "include",
       headers: {

@@ -35,7 +35,7 @@ function App() {
 
   const handleLogOut = async (e) => {
     e.preventDefault();
-    await fetch("http://localhost:8000/user/logout", {
+    await fetch("https://blog-post-backend-k70d.onrender.com/user/logout", {
       method: "POST",
       credentials: "include",
     })
@@ -46,7 +46,7 @@ function App() {
   };
   useEffect(() => {
     async function checkRereshToken() {
-      const res = fetch("http://localhost:8000/user/refresh_token", {
+      const res = fetch("https://blog-post-backend-k70d.onrender.com/user/refresh_token", {
         method: "POST",
         credentials: "include",
         headers: {
