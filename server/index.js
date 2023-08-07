@@ -11,7 +11,8 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    // origin: "http://localhost:5173",
+    origin:"https://rockys-blog-post.netlify.app",
     credentials: true,
   })
 );
@@ -31,6 +32,6 @@ mongoose
   })
   .catch((err) => console.log(`Error connecting to the database.${err}`));
 
-app.listen({ port: process.env.PORT_NUMBER }, () => {
-  console.log(`server is running @ port ${process.env.PORT_NUMBER}`);
+app.listen({ port: process.env.PORT }, () => {
+  console.log(`server is running @ port ${process.env.PORT}`);
 });
