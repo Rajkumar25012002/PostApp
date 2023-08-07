@@ -33,5 +33,5 @@ mongoose
   .catch((err) => console.log(`Error connecting to the database.${err}`));
 
 app.listen({ port: process.env.PORT }, () => {
-  console.log(`server is running @ port ${process.env.PORT}`);
+  console.log(`server is running @ port ${process.env.PORTm}`);
 });
