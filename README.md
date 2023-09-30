@@ -1,10 +1,10 @@
-# Blog Post App
+#  Post App
 
 Welcome to the Blog Post App repository! This project offers an empowering platform for bloggers to share their thoughts, ideas, and stories while ensuring privacy and security through advanced authentication and authorization mechanisms.
 
 ## About the App
 
-The Blog Post App is designed to cater to bloggers of all levels, providing a powerful and intuitive platform for expressing creativity. With a strong focus on user privacy and security, the app employs robust authentication, role-based access control, and seamless data management.
+The  Post App is designed to cater to bloggers of all levels, providing a powerful and intuitive platform for expressing creativity. With a strong focus on user privacy and security, the app employs robust authentication, role-based access control, and seamless data management.
 
 ## Key Features
 
