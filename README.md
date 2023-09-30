@@ -33,7 +33,7 @@ The Blog Post App is built using a comprehensive technology stack, including HTM
 
 ## Demo
 
-Explore a live demo of the Blog Post App [here](https://rockys-blog-post.netlify.app).
+Explore a live demo of the Blog Post App [here](https://rockys-post-app.netlify.app).
 
 ## Contact
 
