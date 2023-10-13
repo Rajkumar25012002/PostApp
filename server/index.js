@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     // origin: "http://localhost:5173",
-    origin:"https://rockys-blog-post.netlify.app",
+    origin:"https://rockys-post-app.netlify.app",
     credentials: true,
   })
 );
