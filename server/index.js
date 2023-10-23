@@ -6,13 +6,13 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/userRoutes.js";
 import postRouter from "./routes/postRoutes.js";
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     // origin: "http://localhost:5173",
-    origin:"https://rockys-post-app.netlify.app",
+    origin: "https://rockys-post-app.netlify.app",
     credentials: true,
   })
 );
@@ -33,5 +33,5 @@ mongoose
   .catch((err) => console.log(`Error connecting to the database.${err}`));
 
 app.listen({ port: process.env.PORT }, () => {
-  console.log(`server is running @ port ${process.env.PORTm}`);
+  console.log(`server is running @ port ${process.env.PORT}`);
 });

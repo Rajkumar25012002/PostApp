@@ -2,9 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { createSelector } from "@reduxjs/toolkit";
+import { URL } from "../components/utils/API";
 export const getAllPost = createAsyncThunk("post/getAllPost", async () => {
   try {
-    const result = await axios.get("https://blog-post-backend-k70d.onrender.com/post/getAllPost");
+    const result = await axios.get(`${URL}/post/getAllPost`);
     const data = result.data;
     return data;
   } catch (error) {
@@ -16,7 +17,7 @@ export const updatePost = createAsyncThunk(
   async (updatedContent) => {
     try {
       const result = await axios.post(
-        "https://blog-post-backend-k70d.onrender.com/post/updatePost",
+        `${URL}/post/updatePost`,
         updatedContent.details,
         {
           headers: {
@@ -32,12 +33,33 @@ export const updatePost = createAsyncThunk(
     }
   }
 );
+export const updateComment = createAsyncThunk(
+  "post/updateComment",
+  async (updatedComment) => {
+    try {
+      const result = await axios.post(
+        `${URL}/post/updateComment`,
+        updatedComment.details,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${updatedComment.token}`,
+          },
+        }
+      );
+      const data = result.data;
+      return data;
+    } catch (error) {
+      throw new Error(error.response.data.message);
+    }
+  }
+);
 export const retweetedPost = createAsyncThunk(
   "post/retweetPost",
   async (retweetPost) => {
     try {
       const res = await axios.post(
-        "https://blog-post-backend-k70d.onrender.com/post/retweetPost",
+        `${URL}/post/retweetPost`,
         retweetPost.details,
         {
           headers: { authorization: `Bearer ${retweetPost.token}` },
@@ -54,7 +76,7 @@ export const deletePost = createAsyncThunk(
   async (postId) => {
     try {
       const result = await axios.post(
-        "https://blog-post-backend-k70d.onrender.com/post/deletePost",
+        `${URL}/post/deletePost`,
         postId.details,
         {
           headers: {
@@ -75,7 +97,7 @@ export const addEmoji = createAsyncThunk(
   async (updatedPost) => {
     try {
       const result = await axios.post(
-        "https://blog-post-backend-k70d.onrender.com/post/addEmoji",
+        `${URL}/post/addEmoji`,
         updatedPost.details,
         {
           headers: {
@@ -96,7 +118,7 @@ export const addComment = createAsyncThunk(
   async (addComment) => {
     try {
       const result = await axios.post(
-        "https://blog-post-backend-k70d.onrender.com/post/addComment",
+        `${URL}/post/addComment`,
         addComment.details,
         {
           headers: {
@@ -115,7 +137,7 @@ export const addComment = createAsyncThunk(
 export const addPost = createAsyncThunk("post/addPost", async (initialPost) => {
   try {
     const result = await axios.post(
-      "https://blog-post-backend-k70d.onrender.com/post/addPost",
+      `${URL}/post/addPost`,
       initialPost.details,
       {
         headers: {
@@ -198,6 +220,21 @@ const postSlice = createSlice({
       };
     });
     builder.addCase(updatePost.rejected, (state, action) => {
+      state.status = "rejected";
+      state.err = action.error.message;
+    });
+    builder.addCase(updateComment.fulfilled, (state, action) => {
+      state.status = "succeeded";
+      const { postId } = action.payload;
+      const updatedPosts = state.posts.map((post) =>
+        post.postId === postId ? action.payload : post
+      );
+      return {
+        ...state,
+        posts: updatedPosts,
+      };
+    });
+    builder.addCase(updateComment.rejected, (state, action) => {
       state.status = "rejected";
       state.err = action.error.message;
     });

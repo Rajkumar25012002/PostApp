@@ -138,6 +138,63 @@ export const isUserAuth = async (req, res, next) => {
     });
   }
 };
+export const followUnfollowUser = async (req, res, next) => {
+  try {
+    const { userId, followerId } = req.body;
+    const user = await userCollection.findOne({ userid: userId });
+    const following = user.userHistory.followings;
+    let user1;
+    let user2;
+    if (following.includes(followerId)) {
+      user1 = await userCollection.findOneAndUpdate(
+        { userid: userId },
+        { $pull: { "userHistory.followings": followerId } },
+        {
+          new: true,
+          projection: { password: 0, refreshToken: 0, __v: 0, _id: 0 },
+        }
+      );
+      user2 = await userCollection.findOneAndUpdate(
+        { userid: followerId },
+        { $pull: { "userHistory.followers": userId } },
+        {
+          new: true,
+          projection: { password: 0, refreshToken: 0, __v: 0, _id: 0 },
+        }
+      );
+      res.send({
+        message: { user1: user1, user2: user2 },
+        status: true,
+      });
+    } else {
+      user1 = await userCollection.findOneAndUpdate(
+        { userid: userId },
+        { $push: { "userHistory.followings": followerId } },
+        {
+          new: true,
+          projection: { password: 0, refreshToken: 0, __v: 0, _id: 0 },
+        }
+      );
+      user2 = await userCollection.findOneAndUpdate(
+        { userid: followerId },
+        { $push: { "userHistory.followers": userId } },
+        {
+          new: true,
+          projection: { password: 0, refreshToken: 0, __v: 0, _id: 0 },
+        }
+      );
+      res.send({
+        message: { user1: user1, user2: user2 },
+        status: true,
+      });
+    }
+  } catch (err) {
+    res.status(400).send({
+      error: "Bad Request",
+      message: "Can't follow or unfollow user",
+    });
+  }
+};
 export const getUserInfo = async (req, res, next) => {
   try {
     const { userid } = req.body;
@@ -179,8 +236,34 @@ export const getAllUsers = async (_req, res, next) => {
 };
 export const updatedUser = async (req, res, next) => {
   try {
-    const { userid, user_name, description, email, userRole } = req.body;
+    const {
+      userid,
+      user_name,
+      description,
+      email,
+      userRole,
+      userProfilePic,
+      userCoverPic,
+    } = req.body;
     if (userid !== null && userid) {
+      if (userProfilePic) {
+        const user = await userCollection.findOneAndUpdate(
+          { userid: userid },
+          { $set: { userProfilePic: userProfilePic } },
+          { new: true }
+        );
+        res.send({ message: user, status: true });
+        return;
+      }
+      if (userCoverPic) {
+        const user = await userCollection.findOneAndUpdate(
+          { userid: userid },
+          { $set: { userCoverPic: userCoverPic } },
+          { new: true }
+        );
+        res.send({ message: user, status: true });
+        return;
+      }
       const nested = "userHistory.description";
       const usernameExists = await userCollection.findOne({
         user_name: user_name,

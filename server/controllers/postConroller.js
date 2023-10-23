@@ -3,14 +3,27 @@ import userCollection from "../models/userModel.js";
 import { nanoid } from "nanoid";
 export const addPost = async (req, res, next) => {
   try {
-    const { title, content, datePosted, userName, userid } = req.body;
+    const {
+      title,
+      content,
+      datePosted,
+      userName,
+      userid,
+      link,
+      images,
+      mentions,
+    } = req.body;
     const postData = {
       postId: nanoid(),
       userName: userName,
       userid: userid,
       datePosted: datePosted,
+      lastUpdated: datePosted,
       title: title,
       content: content,
+      link: link,
+      images: images,
+      mentions: mentions,
     };
     const post = await postCollection.insertMany([postData]);
     res.send(post);
@@ -103,16 +116,57 @@ export const addComment = async (req, res, next) => {
     });
   }
 };
+export const updateComment = async (req, res, next) => {
+  try {
+    const { postId, commentId, userId } = req.body;
+    let result;
+    const post = await postCollection.findOne({
+      postId: postId,
+    });
+    if (post) {
+      const commentIndex = post.comments.findIndex(
+        (comment) => comment._id.toString() === commentId
+      );
+      const comment = post.comments[commentIndex];
+      const userIndex =
+        comment.likes.length > 0 ? comment.likes.indexOf(userId) : -1;
+      if (userIndex === -1) {
+        result = await postCollection.findOneAndUpdate(
+          { postId: postId, "comments._id": commentId },
+          { $push: { "comments.$.likes": userId } },
+          { new: true }
+        );
+        res.send(result);
+      } else {
+        result = await postCollection.findOneAndUpdate(
+          { postId: postId, "comments._id": commentId },
+          { $pull: { "comments.$.likes": userId } },
+          { new: true }
+        );
+        res.send(result);
+      }
+    }
+  } catch (err) {
+    res.status(400).send({
+      error: "Bad Request",
+      message: "Can't add comment like",
+    });
+  }
+};
 export const updatePost = async (req, res, next) => {
   try {
-    const { postId, title, content, datePosted } = req.body;
+    const { postId, title, content, updatedDate, mentions, link, images } =
+      req.body;
     const post = await postCollection.findOneAndUpdate(
       { postId: postId },
       {
         $set: {
           title: title,
           content: content,
-          datePosted: datePosted,
+          lastUpdated: updatedDate,
+          mentions: mentions,
+          images: images,
+          link: link,
         },
       },
       { new: true }
@@ -146,8 +200,18 @@ export const deletePost = async (req, res, next) => {
 };
 export const retweetedPost = async (req, res, next) => {
   try {
-    const { postId, userid, title, content, datePosted, retweetedBy } =
-      req.body;
+    const {
+      postId,
+      userid,
+      title,
+      content,
+      datePosted,
+      retweetedBy,
+      isRetweet,
+      mentions,
+      link,
+      images,
+    } = req.body;
     const postPresent = await postCollection.findOne({ postId: postId });
     const retweetArray = postPresent.shares || [];
     const userIndex = retweetArray.indexOf(retweetedBy);
@@ -160,7 +224,10 @@ export const retweetedPost = async (req, res, next) => {
         title,
         content,
         datePosted,
-        isRetweet: true,
+        mentions,
+        link,
+        images,
+        isRetweet: isRetweet,
         retweetedBy: retweetedBy,
         originalPostId: postId,
       });

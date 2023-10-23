@@ -1,8 +1,8 @@
-import React, { useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { UserContext } from "../App";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import SideBar from "../components/SideBar";
+import AddPost from "../components/AddPost";
 import MainPage from "../components/MainPage";
 const HomePage = () => {
   const navigate = useNavigate();
@@ -11,25 +11,23 @@ const HomePage = () => {
     if (user.accessToken === undefined) {
       navigate("/login");
     }
-  }, []);
+  }, [user, navigate]);
   return (
     <>
       {user.accessToken && (
         <Container>
-          <SideBar />
+          <AddPost />
           <MainPage />
+          <Outlet/>
         </Container>
       )}
     </>
   );
 };
 const Container = styled.div`
-  display: grid;
-  grid-template-columns: 25% 70%;
-  margin: 0.5rem;
-  padding: 0.5rem;
-  height: 88vh;
-  color: var(--text-normal);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 `;
 
 export default HomePage;

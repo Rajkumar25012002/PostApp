@@ -1,84 +1,104 @@
-import React, { useState } from "react";
 import styled from "styled-components";
 import Post from "./Post.jsx";
 import { selectAllPosts, getStateStatus } from "../features/postSlice";
 import { useSelector } from "react-redux";
+import { MDBBtnGroup, MDBContainer, MDBRadio } from "mdb-react-ui-kit";
+import { useState } from "react";
+import filterPostByLatest from "./utils/filterPostByLatest.js";
 const MainPage = () => {
   const allPosts = useSelector(selectAllPosts);
   const status = useSelector(getStateStatus);
-  const [searchText, setSearchText] = useState("");
+  const [type, setType] = useState("all");
+  const [latestBy, setLatestBy] = useState("");
   let displaycontent;
   if (status === "loading") {
     displaycontent = <p>Loading...</p>;
   } else if (allPosts) {
-    const orderedPosts = allPosts
-      .slice()
-      .sort((a, b) => b.datePosted.localeCompare(a.datePosted));
+    const filterePosts = filterPostByLatest(allPosts, latestBy);
     displaycontent =
-      searchText === null
-        ? orderedPosts.map((post, index) => <Post key={index} post={post} />)
-        : orderedPosts
-            .filter(
-              (post) =>
-                post.title.toLowerCase().includes(searchText.toLowerCase()) ||
-                post.content.toLowerCase().includes(searchText.toLowerCase())
-            )
-            .map((post, index) => <Post key={index} post={post} />);
+      filterePosts.length > 0 ? (
+        filterePosts.map((post, index) => <Post key={index} post={post} />)
+      ) : (
+        <p className="text-center m-0">No Post Available</p>
+      );
   }
   return (
     <Container>
-      <div className="search-post">
-        <input
-          type="text"
-          placeholder="Search for a post..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
+      <MDBContainer
+        style={{ maxWidth: "40rem" }}
+        className="my-3 d-flex align-items-center justify-content-between align-self-center"
+      >
+        <MDBBtnGroup>
+          <MDBRadio
+            btn
+            btnColor="secondary"
+            id="btn-radio2"
+            name="options"
+            checked={type === "all"}
+            wrapperTag="span"
+            label="All"
+            onClick={() => {
+              setType("All");
+              setLatestBy("");
+            }}
+            value={"all"}
+          />
+          <MDBRadio
+            btn
+            btnColor="secondary"
+            id="btn-radio3"
+            name="options"
+            checked={type === "latest"}
+            wrapperTag="span"
+            onClick={() => {
+              setType("latest");
+              setLatestBy("day");
+            }}
+            value={"latest"}
+            label="Latest"
+          />
+        </MDBBtnGroup>
+        {type === "latest" && (
+          <MDBBtnGroup>
+            <MDBRadio
+              btn
+              btnColor="secondary"
+              id="btn-radio5"
+              name="options"
+              wrapperTag="span"
+              checked={latestBy === "day"}
+              onClick={() => setLatestBy("day")}
+              value={"day"}
+              label="Day"
+            />
+            <MDBRadio
+              btn
+              btnColor="secondary"
+              id="btn-radio4"
+              onClick={() => setLatestBy("week")}
+              value={"week"}
+              checked={latestBy === "week"}
+              name="options"
+              wrapperTag="span"
+              label="Week"
+            />
+          </MDBBtnGroup>
+        )}
+      </MDBContainer>
+      <div className="post-display d-flex flex-column gap-1 mx-1">
+        {displaycontent}
       </div>
-      <div className="post-display">{displaycontent}</div>
     </Container>
   );
 };
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 0.5rem;
-  overflow-y: auto;
-  background-color: var(--page-background);
-  border: 1px solid rgb(219, 219, 219);
-  color: var(--text-normal);
-  max-height: 85vh;
-  .search-post {
-    display: flex;
-    padding: 0.5rem;
-    justify-content: center;
-    input {
-      border-radius: 1rem;
-      outline: none;
-      width: 35rem;
-      background-color: rgb(229, 238, 239);
-      border: 1px solid rgb(182, 182, 182);
-      padding: 0.5rem;
-    }
+  .btn {
+    border-radius: 0;
   }
   .post-display {
-    display: flex;
-    flex-direction: column;
-    padding: 0.5rem;
-    gap: 0.5rem;
-    overflow-y: auto;
-    border-radius: 0.25rem;
-    &::-webkit-scrollbar {
-      width: 0.35rem;
-      &-thumb {
-        background-color: rgb(105, 242, 158);
-        width: 0.1rem;
-        border-radius: 1rem;
-      }
-    }
-    border: 1px solid rgb(182, 182, 182);
-    a {
-      text-decoration: none;
+    align-items: center;
+    @media screen and (max-width: 510px) {
+      align-items: normal;
     }
   }
 `;

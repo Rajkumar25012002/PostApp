@@ -1,198 +1,221 @@
 import React from "react";
-import formatDate from "./utils/DateTime";
 import { parseISO, formatDistanceToNow } from "date-fns";
-import { FaUserCircle, FaComment, FaShare, FaEdit } from "react-icons/fa";
-import { AiFillDislike, AiFillHeart } from "react-icons/ai";
 import { addEmoji, retweetedPost } from "../features/postSlice";
 import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { UserContext } from "../App";
-import { getUserNameById } from "../features/userSlice";
+import { getUserNameById, selectAllUsers } from "../features/userSlice";
 import styled from "styled-components";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import ROLE from "./utils/USERROLE.js";
+import {
+  MDBCard,
+  MDBCardTitle,
+  MDBCardText,
+  MDBCardFooter,
+  MDBIcon,
+  MDBContainer,
+  MDBRow,
+  MDBCol,
+  MDBCardLink,
+} from "mdb-react-ui-kit";
 let Post = ({ post }) => {
+  const navigate = useNavigate();
   const { user, userIdFromToken, userRoleFromToken } = useContext(UserContext);
   const userName = useSelector((state) => getUserNameById(state, post.userid));
   const dispatch = useDispatch();
+  let mentionedUsers = useSelector(selectAllUsers)
+    .filter((user) => post.mentions.includes(user.user_name))
+    .map((user) => {
+      return { userName: user.user_name, userId: user.userid };
+    });
   const retweetedUserName = useSelector((state) =>
     getUserNameById(state, post.retweetedBy)
   );
   const formattedDate =
     post.datePosted && formatDistanceToNow(parseISO(post.datePosted));
+  const addLikeForPost = () => {
+    dispatch(
+      addEmoji({
+        details: {
+          postId: post.postId,
+          feed: "likes",
+          userid: userIdFromToken,
+        },
+        token: user.accessToken,
+      })
+    );
+  };
+  const retweetForPost = () => {
+    dispatch(
+      retweetedPost({
+        details: {
+          postId: post.postId,
+          userid: post.userid,
+          title: post.title,
+          content: post.content,
+          link: post.link,
+          images: post.images,
+          mentions: post.mentions,
+          isRetweet: true,
+          datePosted: new Date().toISOString(),
+          retweetedBy: userIdFromToken,
+        },
+        token: user.accessToken,
+      })
+    );
+  };
   return (
     <Container>
-      <div className="post">
+      <MDBCard className="post p-2 w-sm-100">
         {post.isRetweet && (
-          <p className="retweetBy">
-            <FaShare color="rgb(96, 177, 2)" size="1rem"></FaShare>
+          <MDBCardTitle className="d-flex align-items-center  small gap-2 mx-4">
+            <MDBIcon fas size="sm" icon="retweet" />
             <Link to={`/user/${post.retweetedBy}`}>
-              {post.retweetedBy === userIdFromToken
-                ? " You "
-                : retweetedUserName}{" "}
-              Retweeted
+              <MDBCardText
+                className="m-0"
+                style={{ fontSize: "0.75rem", fontStyle: "italic" }}
+              >
+                {post.retweetedBy === userIdFromToken
+                  ? " You "
+                  : retweetedUserName}{" "}
+                Retweeted
+              </MDBCardText>
             </Link>
-          </p>
+          </MDBCardTitle>
         )}
-        <div className="post-header">
+        <div className="d-flex gap-2">
           <Link to={`/user/${post.userid}`}>
-            <FaUserCircle size="2rem" />
+            <MDBIcon size="2xl" className="mt-3" fas icon="user-circle" />
           </Link>
-          <p className="username">{userName}</p>
-          <p className="time">{`${formattedDate} ago`}</p>
-          {(post.userid === userIdFromToken ||
-            userRoleFromToken === ROLE.ADMIN ||
-            userRoleFromToken === ROLE.EDITOR) &&
-            !post.isRetweet && (
-              <Link to={`/edit/post/${post.postId}`}>
-                <FaEdit className="editicon" size="1rem" />
-              </Link>
+          <div className="d-flex flex-column w-100">
+            <MDBCardTitle className="m-0 mb-2">
+              <MDBCardText className="m-0">
+                {userName}
+                {(post.userid === userIdFromToken ||
+                  userRoleFromToken === ROLE.ADMIN ||
+                  userRoleFromToken === ROLE.EDITOR) &&
+                  !post.isRetweet && (
+                    <Link to={`/edit/post/${post.postId}`}>
+                      <MDBIcon className="mx-5" size="sm" fas icon="pen" />
+                    </Link>
+                  )}
+              </MDBCardText>
+              <MDBCardText
+                className="m-0 fw-normal"
+                style={{ fontSize: "0.75rem" }}
+              >{`${formattedDate} ago`}</MDBCardText>
+            </MDBCardTitle>
+            <Link to={`/post/${post.postId}`}>
+              <MDBCardText className="m-0">{post.content}</MDBCardText>
+              {post.images && (
+                <MDBContainer className="m-1">
+                  <MDBRow className="g-1">
+                    {post.images.map((image, index) => (
+                      <MDBCol md="6" key={index}>
+                        <img src={image} alt={"image"} className="img-fluid" />
+                      </MDBCol>
+                    ))}
+                  </MDBRow>
+                </MDBContainer>
+              )}
+              <MDBCardText className="m-0">#{post.title}</MDBCardText>
+            </Link>
+            {post.link && (
+              <MDBCardLink
+                href={post.link}
+                target="_blank"
+                className="postlink"
+              >
+                <MDBIcon size="sm" fas icon="link" />
+                {post.link}
+              </MDBCardLink>
             )}
+            {mentionedUsers && (
+              <div className="d-flex gap-1 flex-wrap">
+                {mentionedUsers.map((user, index) => (
+                  <MDBCardLink
+                    key={index}
+                    className="mentions m-0"
+                    onClick={() => navigate("/user/" + user.userId)}
+                  >
+                    @{user.userName.toLowerCase()}
+                  </MDBCardLink>
+                ))}
+              </div>
+            )}
+            <MDBCardFooter border="0" className="d-flex gap-5 p-0 py-2">
+              <span>
+                <MDBIcon
+                  fas
+                  icon="heart"
+                  style={{
+                    color:
+                      post && post.likes.includes(userIdFromToken)
+                        ? "red"
+                        : "rgb(173, 173, 173)",
+                  }}
+                  onClick={addLikeForPost}
+                />
+                {post.likes.length}
+              </span>
+              {post.comments !== undefined && (
+                <span>
+                  <MDBIcon fas icon="comment" />
+                  {post.comments.length}
+                </span>
+              )}
+              <span>
+                <MDBIcon
+                  fas
+                  icon="share"
+                  style={{
+                    color: post.shares.includes(userIdFromToken)
+                      ? "rgb(7, 119, 255)"
+                      : "rgb(173, 173, 173)",
+                  }}
+                  onClick={retweetForPost}
+                />
+                {post.shares.length}
+              </span>
+              <span>
+                <MDBIcon fas icon="bookmark" />
+              </span>
+            </MDBCardFooter>
+          </div>
         </div>
-        <Link to={`/post/${post.postId}`}>
-          <p className="post-title">{post.title}</p>
-          <p className="post-content">{post.content}</p>
-          {post.datePosted && (
-            <p className="date-time">
-              {formatDate(parseISO(post.datePosted).toLocaleString())}
-            </p>
-          )}
-        </Link>
-        <div className="post-feedback">
-          <span>
-            <AiFillHeart
-              color={
-                post.likes.includes(userIdFromToken)
-                  ? "red"
-                  : "rgb(173, 173, 173)"
-              }
-              onClick={() =>
-                dispatch(
-                  addEmoji({
-                    details: {
-                      postId: post.postId,
-                      feed: "likes",
-                      userid: userIdFromToken,
-                    },
-                    token: user.accessToken,
-                  })
-                )
-              }
-            />
-            {post.likes.length}
-          </span>
-          <span>
-            <AiFillDislike
-              color={
-                post.dislikes.includes(userIdFromToken)
-                  ? "rgb(70, 61, 60)"
-                  : "rgb(173, 173, 173)"
-              }
-              onClick={() =>
-                dispatch(
-                  addEmoji({
-                    details: {
-                      postId: post.postId,
-                      feed: "dislikes",
-                      userid: userIdFromToken,
-                    },
-                    token: user.accessToken,
-                  })
-                )
-              }
-            />
-            {post.dislikes.length}
-          </span>
-          {post.comments !== undefined && (
-            <span>
-              <FaComment />
-              {post.comments.length}
-            </span>
-          )}
-          <span>
-            <FaShare
-              color={
-                post.shares.includes(userIdFromToken)
-                  ? "rgb(7, 119, 255)"
-                  : "rgb(173, 173, 173)"
-              }
-              onClick={() =>
-                dispatch(
-                  retweetedPost({
-                    details: {
-                      postId: post.postId,
-                      userid: post.userid,
-                      title: post.title,
-                      content: post.content,
-                      datePosted: new Date().toISOString(),
-                      retweetedBy: userIdFromToken,
-                    },
-                    token: user.accessToken,
-                  })
-                )
-              }
-            />
-            {post.shares.length}
-          </span>
-        </div>
-      </div>
+      </MDBCard>
     </Container>
   );
 };
+
 Post = React.memo(Post);
 const Container = styled.div`
-  .post {
-    display: flex;
-    flex-direction: column;
-    padding: 0.5rem;
-    height: max-content;
-    border-radius: 0.25rem;
-    color: var(--text-normal);
-    border: 1px solid rgb(182, 182, 182);
-    .retweetBy {
-      margin: 0;
-      font-size: 0.75rem;
-      font-style: italic;
+  & > .post {
+    width: 40rem;
+    a {
+      color: black;
     }
-    .post-header {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      .username {
-        font-weight: 600;
-        color: var(--text-header);
-        font-size: large;
-      }
-      .time {
-        font-style: italic;
-      }
-      .editicon {
-        color: "rgb(173, 173, 173)";
-        transition: 0.2s ease-in-out;
-        &:hover {
-          color: rgb(7, 119, 255);
-          transform: scale(1.1);
-        }
-      }
-    }
-    .post-title {
-      margin: 0;
-      font-weight: 600;
-    }
-    .post-content {
-      margin: 0;
-      font-family: var(--font-family);
-    }
-    .date-time {
-      margin-bottom: 0;
-      font-size: small;
-    }
-    .post-feedback {
-      display: flex;
-      align-items: center;
+    i {
       cursor: pointer;
-      gap: 1rem;
+    }
+    .postlink,
+    .mentions {
+      cursor: pointer;
+      color: rgb(2, 84, 183) !important;
+      &:hover {
+        text-decoration: underline !important;
+      }
+    }
+    img {
+      width: 100%;
+      height: 10rem;
+      border-radius: 0.25rem;
+      object-fit: cover;
+    }
+    @media screen and (max-width: 510px) {
+      width: 100%;
     }
   }
 `;

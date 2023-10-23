@@ -7,7 +7,8 @@ import {
   isUserAuth,
   getAllUsers,
   updatedUser,
-  deactivateUser
+  deactivateUser,
+  followUnfollowUser
 } from "../controllers/userController.js";
 import { isAuthorizedUserUpdate } from "../isAuth.js";
 
@@ -20,6 +21,12 @@ userRouter.post("/logout", logoutUser);
 userRouter.post("/refresh_token", refreshTokenForUser);
 userRouter.post("/isUserAuth", isUserAuth);
 userRouter.post("/updateUser", isUserAuth, isAuthorizedUserUpdate, updatedUser);
-userRouter.post("/deactivateUser", isUserAuth, isAuthorizedUserUpdate, deactivateUser);
+userRouter.post(
+  "/deactivateUser",
+  isUserAuth,
+  isAuthorizedUserUpdate,
+  deactivateUser
+);
+userRouter.post("/userConnection", isUserAuth, followUnfollowUser);
 
 export default userRouter;

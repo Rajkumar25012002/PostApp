@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 
 const commentSchema = new mongoose.Schema({
+  commentId: {
+    type: String,
+  },
   content: {
     type: String,
     required: false,
@@ -17,6 +20,7 @@ const commentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  likes: [{ type: String }],
 });
 const postSchema = new mongoose.Schema({
   postId: {
@@ -43,23 +47,21 @@ const postSchema = new mongoose.Schema({
   content: {
     type: String,
   },
-  likes: [
-    {type: String}
-  ],
-  dislikes:[
-    {type: String}
-  ],
+  mentions: [{ type: String }],
+  images: [{ type: String }],
+  link: { type: String },
+  likes: [{ type: String }],
+  dislikes: [{ type: String }],
+  bookmarks: [{ type: String }],
   comments: [commentSchema],
-  shares: [
-    {type: String}
-  ],
+  shares: [{ type: String }],
   isRetweet: {
     type: Boolean,
     default: false,
   },
   retweetedBy: {
-    type: String
-  }
+    type: String,
+  },
 });
 const postCollection = mongoose.model("post", postSchema);
 export default postCollection;

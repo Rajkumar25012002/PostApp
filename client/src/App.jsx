@@ -7,22 +7,25 @@ import HomePage from "./Pages/HomePage";
 import styled from "styled-components";
 import SinglePost from "./Pages/SinglePost";
 import EditPost from "./Pages/EditPost";
+import EditUser from "./components/EditUser";
 import { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminPage from "./Pages/AdminPage";
 import jwtDecode from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import UserPage from "./Pages/UserPage";
 import SingleUser from "./Pages/SingleUser";
 import { useSelector } from "react-redux";
 import { getUserDetailsById } from "./features/userSlice";
 import { toastOptionSuccess } from "./components/utils/toastOptions";
 import loadingImg from "./assets/loadingImg.gif";
+import { URL } from "./components/utils/API";
+import Connections from "./components/Connections";
 export const UserContext = createContext([]);
 
 function App() {
   const [user, setUser] = useState({});
+  const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const userIdFromToken =
@@ -35,7 +38,7 @@ function App() {
 
   const handleLogOut = async (e) => {
     e.preventDefault();
-    await fetch("https://blog-post-backend-k70d.onrender.com/user/logout", {
+    await fetch(`${URL}/user/logout`, {
       method: "POST",
       credentials: "include",
     })
@@ -46,7 +49,7 @@ function App() {
   };
   useEffect(() => {
     async function checkRereshToken() {
-      const res = fetch("https://blog-post-backend-k70d.onrender.com/user/refresh_token", {
+      fetch(`${URL}/user/refresh_token`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -71,7 +74,6 @@ function App() {
         style={{
           display: "flex",
           flexDirection: "column",
-          // justifyContent: "center",
         }}
       >
         <Navigation logout={handleLogOut} />
@@ -85,27 +87,31 @@ function App() {
   }
   return (
     <Container>
-      <Navigation logout={handleLogOut} user={user} />
       <ToastContainer />
       <UserContext.Provider
         value={{
           user,
           setUser,
+          searchText,
+          setSearchText,
           userIdFromToken,
           userInfo: currentUserDetails,
           userRoleFromToken,
         }}
       >
         <Routes>
-          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/post/:id" element={<SinglePost />} />
-          <Route path="/edit/post/:id" element={<EditPost />} />
-          <Route path="/user">
-            <Route index element={<UserPage />} />
-            <Route path=":userid" element={<SingleUser />} />
+          <Route path="/" element={<Navigation logout={handleLogOut} />}>
+            <Route path="/" element={<HomePage />}>
+              <Route path="edit/post/:id" element={<EditPost />} />
+              <Route path="post/:id" element={<SinglePost />} />
+            </Route>
+            <Route path="admin" element={<AdminPage />} />
+            <Route path="user/:userid" element={<SingleUser />}>
+              <Route path="edit" element={<EditUser />} />
+              <Route path=":connections" element={<Connections />} />
+            </Route>
           </Route>
         </Routes>
       </UserContext.Provider>
@@ -113,7 +119,11 @@ function App() {
   );
 }
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
+display: flex;
+flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow-y: auto;
+  overflow-x:hidden ;
 `;
 export default App;

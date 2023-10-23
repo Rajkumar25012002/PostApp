@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useContext } from "react";
 import { UserContext } from "../App";
 import styled from "styled-components";
+import { URL } from "../components/utils/API";
 const AdminPage = () => {
   const { user } = useContext(UserContext);
   const [content, setContent] = useState("You need to login....");
   useEffect(() => {
-    fetch("https://blog-post-backend-k70d.onrender.com/user/isUserAuth", {
+    fetch(`${URL}/user/isUserAuth`, {
       method: "POST",
       credentials: "include",
       headers: {

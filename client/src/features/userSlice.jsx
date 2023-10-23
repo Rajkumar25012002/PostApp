@@ -1,21 +1,45 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { URL } from "../components/utils/API";
 export const getAllUsers = createAsyncThunk("user/getAllUsers", async () => {
   try {
-    const result = await axios.get("https://blog-post-backend-k70d.onrender.com/user/getAllUsers");
+    const result = await axios.get(`${URL}/user/getAllUsers`);
     const data = result.data;
     return data;
   } catch (error) {
     throw new Error(error.response.data.message);
   }
 });
+export const followUnfollowUser = createAsyncThunk(
+  "user/followUnfollowUser",
+  async (updatedDetails) => {
+    try {
+      const result = await axios.post(
+        `${URL}/user/userConnection`,
+        updatedDetails.details,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${updatedDetails.token}`,
+          },
+        }
+      );
+      const data = result.data;
+      if (data.status === true) {
+        return data.message;
+      }
+    } catch (error) {
+      throw new Error(error.response.data.message);
+    }
+  }
+);
 export const updatedUser = createAsyncThunk(
   "user/updateUser",
   async (updatedDetails) => {
     try {
       const result = await axios.post(
-        "https://blog-post-backend-k70d.onrender.com/user/updateUser",
+        `${URL}/user/updateUser`,
         updatedDetails.details,
         {
           headers: {
@@ -38,7 +62,7 @@ export const deactivateUser = createAsyncThunk(
   async (updatedDetails) => {
     try {
       const result = await axios.post(
-        "https://blog-post-backend-k70d.onrender.com/user/deactivateUser",
+        `${URL}/user/deactivateUser`,
         updatedDetails.details,
         {
           headers: {
@@ -106,6 +130,25 @@ const userSlice = createSlice({
       state.status = "rejected";
       state.err = action.error.message;
     });
+    builder.addCase(followUnfollowUser.fulfilled, (state, action) => {
+      state.status = "fulfilled";
+      const { user1, user2 } = action.payload;
+      const updatedUser = state.users.map((usercontent) =>
+        usercontent.userid === user1.userid
+          ? user1
+          : usercontent.userid === user2.userid
+          ? user2
+          : usercontent
+      );
+      return {
+        ...state,
+        users: updatedUser,
+      };
+    });
+    builder.addCase(followUnfollowUser.rejected, (state, action) => {
+      state.status = "rejected";
+      state.err = action.error.message;
+    });
   },
 });
 export const getUserDetailsById = (state, userIdFromToken) =>
@@ -115,4 +158,6 @@ export const getAllUsersStatus = (state) => state.user.status;
 export const getUserError = (state) => state.user.err;
 export const getUserNameById = (state, userIdFromToken) =>
   state.user.users.find((user) => user.userid === userIdFromToken)?.user_name;
+export const getUserIdByName = (state, userName) =>
+  state.user.users.find((user) => user.user_name === userName)?.userid;
 export default userSlice.reducer;

@@ -1,21 +1,18 @@
-import React from "react";
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import Post from "../components/Post";
-import { useParams } from "react-router-dom";
-import { FaUserCircle, FaUserEdit, FaUserSlash } from "react-icons/fa";
+import { Outlet, useParams } from "react-router-dom";
 import { FcDownRight } from "react-icons/fc";
 import { format } from "date-fns";
-import EditUser from "../components/EditUser";
 import { useSelector } from "react-redux";
-import { IoArrowBackCircleSharp } from "react-icons/io5";
 import {
   selectPostByUserId,
   getAllLikedPostsByUser,
   getAllCommentedPostsByUserId,
+  getAllPost,
 } from "../features/postSlice";
 import { deactivateUser } from "../features/userSlice";
-import { getUserDetailsById } from "../features/userSlice";
+import { getUserDetailsById, followUnfollowUser } from "../features/userSlice";
 import { useContext } from "react";
 import { UserContext } from "../App";
 import { useDispatch } from "react-redux";
@@ -28,11 +25,25 @@ import {
   toastOptionError,
   toastOptionSuccess,
 } from "../components/utils/toastOptions";
+import Comment from "../components/Comment";
+import { useNavigate } from "react-router-dom";
+import {
+  MDBBtn,
+  MDBCard,
+  MDBContainer,
+  MDBIcon,
+  MDBTabs,
+  MDBTabsItem,
+  MDBTabsLink,
+  MDBTabsContent,
+  MDBTabsPane,
+  MDBTooltip,
+} from "mdb-react-ui-kit";
 const SingleUser = () => {
+  const navigate = useNavigate();
   const { user, userIdFromToken, userRoleFromToken } = useContext(UserContext);
   const { userid } = useParams();
   const dispatch = useDispatch();
-  const [showUserEditor, setShowUserEditor] = useState(false);
   const [selectedNav, setSelectedNav] = useState("posts");
   const userinfo = useSelector((state) => getUserDetailsById(state, userid));
 
@@ -45,9 +56,19 @@ const SingleUser = () => {
   const selectCommentedPosts = useSelector((state) =>
     getAllCommentedPostsByUserId(state, userinfo?.userid)
   );
-  const userPostDetails = selectUserPost.map((post, index) => {
-    return <Post post={post} key={index} />;
-  });
+  const userPostDetails =
+    selectUserPost.length > 0 ? (
+      selectUserPost
+        .slice()
+        .sort((a, b) => b.datePosted.localeCompare(a.datePosted))
+        .map((post, index) => {
+          return <Post post={post} key={index} />;
+        })
+    ) : (
+      <div style={{ textAlign: "center", maxWidth: "40rem" }}>
+        You have not posted yet
+      </div>
+    );
   const userStatus = useSelector(getAllUsersStatus);
   const userError = useSelector(getUserError);
   const handleDeactivateUser = () => {
@@ -76,6 +97,17 @@ const SingleUser = () => {
       }
     }
   };
+  const connectUser = () => {
+    dispatch(
+      followUnfollowUser({
+        details: {
+          followerId: userinfo.userid,
+          userId: userIdFromToken,
+        },
+        token: user.accessToken,
+      })
+    );
+  };
   useEffect(() => {
     if (userStatus === "rejected") {
       toast.error(userError, toastOptionError);
@@ -86,300 +118,258 @@ const SingleUser = () => {
   }, [userStatus]);
   const userLikedPosts =
     selectUserLikedPosts.length > 0 ? (
-      selectUserLikedPosts.map((post, index) => {
-        return <Post post={post} key={index} />;
-      })
+      selectUserLikedPosts
+        .slice()
+        .sort((a, b) => b.datePosted.localeCompare(a.datePosted))
+        .map((post, index) => {
+          return <Post post={post} key={index} />;
+        })
     ) : (
-      <div className="nopost">You have not liked any post yet</div>
+      <div style={{ textAlign: "center", maxWidth: "40rem" }}>
+        You have not liked any post yet
+      </div>
     );
   const userCommentedPosts =
     selectCommentedPosts.length > 0 ? (
-      selectCommentedPosts.map((post, index) => {
-        return (
-          <>
-            <Post post={post} key={index} />
-            {post.comments.map((comment, index) => {
-              if (comment.authorId === userinfo.userid) {
+      selectCommentedPosts
+        .slice()
+        .sort((a, b) => b.datePosted.localeCompare(a.datePosted))
+        .map((post, index) => {
+          return (
+            <>
+              <Post post={post} key={index} />
+              {post.comments.map((comment, index) => {
                 return (
-                  <div key={index} className="comment-container">
-                    <FcDownRight size={"3rem"} />
-                    <div className="comment-box">
-                      <FaUserCircle size="1.5rem" />
-                      <div className="comment-detail">
-                        <span>
-                          <p className="user">{comment.author}</p>
-                          <p className="date">
-                            {format(
-                              new Date(comment.createdAt),
-                              "MMM d, yyy hh:mm a"
-                            )}
-                          </p>
-                        </span>
-                        <p className="replying-to">{`Replying to @${post.userName}`}</p>
-                        <p className="content">{comment.content}</p>
-                      </div>
-                    </div>
+                  <div
+                    key={index}
+                    className="d-flex gap-1 my-2 align-items-center"
+                  >
+                    {comment.authorId === userinfo.userid && (
+                      <>
+                        <FcDownRight size={"3rem"} />
+                        <Comment comment={comment} currentPost={post} />
+                      </>
+                    )}
                   </div>
                 );
-              }
-            })}
-          </>
-        );
-      })
+              })}
+            </>
+          );
+        })
     ) : (
-      <div className="nopost">You have not commented on any post yet</div>
+      <div style={{ textAlign: "center", maxWidth: "40rem" }}>
+        You have not commented on any post yet
+      </div>
     );
+  useEffect(() => {
+    dispatch(getAllPost());
+  }, [userinfo?.isDeactivated]);
   if (!userinfo?.user_name) {
     return <div>Loading...</div>;
   }
   return (
-    <Container>
-      <Link to="/">
-        <IoArrowBackCircleSharp className="back" size="2rem" />
-      </Link>
-      <div className="user-display">
-        <div className="header">
-          <FaUserCircle size="4rem" />
-          <p className="username">{userinfo.user_name}</p>
-          {(userinfo.userid === userIdFromToken ||
-            userRoleFromToken === ROLE.ADMIN) && (
-            <FaUserEdit
-              className="edit-icon"
-              onClick={() => setShowUserEditor(true)}
-              size="1.5rem"
-            />
-          )}
-          {((userinfo.userid === userIdFromToken && !userinfo.isDeactivated) ||
-            userRoleFromToken === ROLE.ADMIN ||
-            (userinfo.isDeactivated &&
-              userinfo.userid === userinfo.deactivatedBy)) && (
-            <FaUserSlash
-              className="delete-icon"
-              onClick={handleDeactivateUser}
-              size="1.5rem"
-            />
-          )}
-          <p className="active-status">
-            {userinfo.isDeactivated
-              ? userinfo.deactivatedBy === userinfo.userid
-                ? "🔴  Activate your account to view details"
-                : `Account has been deactivated by Administrator`
-              : "🟢  Active"}
-          </p>
-        </div>
-        <div className="user-info">
-          <p className="user-role">{userinfo.userRole}</p>
-          <p className="user-description">
-            {userinfo?.userDescription ? userinfo.userDescription : "Hello"}
-          </p>
-          <p className="user-date">{`Joined on - ${format(
-            new Date(userinfo.userHistory.userCreatedAt),
-            "MMM dd,yyy"
-          )}`}</p>
-        </div>
-        <div className="user-detail-history">
-          <nav>
-            <button
-              className={selectedNav === "posts" ? "selected-btn" : ""}
-              onClick={() => setSelectedNav("posts")}
-            >
-              Posts
-            </button>
-            <button
-              className={selectedNav === "replies" ? "selected-btn" : ""}
-              onClick={() => setSelectedNav("replies")}
-            >
-              Replies
-            </button>
-            <button
-              className={selectedNav === "likes" ? "selected-btn" : ""}
-              onClick={() => setSelectedNav("likes")}
-            >
-              Likes
-            </button>
-          </nav>
-          <div className="selected-content">
-            {selectedNav === "posts"
-              ? userPostDetails
-              : selectedNav === "likes"
-              ? userLikedPosts
-              : userCommentedPosts}
+    <Container
+      image={
+        userinfo.userCoverPic
+          ? userinfo.userCoverPic
+          : "https://mdbootstrap.com/img/Photos/Others/images/76.jpg"
+      }
+    >
+      <MDBContainer className="mt-3 d-flex flex-column gap-3">
+        <Link to="/" className="align-self-start">
+          <MDBIcon fas icon="arrow-left" />
+          Back
+        </Link>
+        <MDBCard className="profile-container">
+          <div className=" profile-info d-flex align-items-center py-2 px-4 justify-content-between bg-light">
+            <div className="d-flex flex-sm-row flex-column align-items-center gap-2">
+              <div className="image-container position-relative bg-white border rounded">
+                <img
+                  src={
+                    userinfo.userProfilePic
+                      ? userinfo.userProfilePic
+                      : "https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
+                  }
+                  alt="Avatar"
+                  width={100}
+                  height={100}
+                />
+              </div>
+              <div className="name d-flex flex-column">
+                <div className="d-flex gap-1 align-items-center">
+                  <h5 className="mb-0">{userinfo.user_name}</h5>
+                  {(userinfo.userid === userIdFromToken ||
+                    userRoleFromToken === ROLE.ADMIN ||
+                    userinfo.userid === userinfo.deactivatedBy) && (
+                    <MDBTooltip
+                      tag="a"
+                      wrapperProps={{ href: "#" }}
+                      title={userinfo.isDeactivated ? "Activate" : "Deactivate"}
+                    >
+                      <MDBIcon
+                        style={{ cursor: "pointer" }}
+                        fas
+                        icon={
+                          userinfo.isDeactivated ? "user-alt-slash" : "user-alt"
+                        }
+                        onClick={handleDeactivateUser}
+                      />
+                    </MDBTooltip>
+                  )}
+                  <p className="m-0" style={{ fontSize: "0.75rem" }}>
+                    {userinfo.isDeactivated
+                      ? userinfo.deactivatedBy === userinfo.userid
+                        ? "🔴  Deactive"
+                        : `Account has been deactivated by Administrator`
+                      : "🟢  Active"}
+                  </p>
+                </div>
+                <MDBTooltip
+                  tag="a"
+                  wrapperProps={{ href: "#" }}
+                  title={userinfo.userHistory.description}
+                >
+                  <p
+                    className="mb-0"
+                    style={{
+                      fontSize: "0.8rem",
+                      fontStyle: "italic",
+                      color: "grey",
+                    }}
+                  >
+                    {userinfo.userHistory.description.slice(0, 20)}
+                    {userinfo.userHistory.description.length > 20 ? "..." : ""}
+                  </p>
+                </MDBTooltip>
+                <span className="d-flex align-items-center flex-wrap gap-1">
+                  <MDBIcon
+                    fas
+                    style={{ fontSize: "0.8rem" }}
+                    icon="calendar-alt"
+                  />
+                  <p
+                    className="mt-1 mb-0"
+                    style={{ fontSize: "0.8rem" }}
+                  >{`Joined on - ${format(
+                    new Date(userinfo.userHistory.userCreatedAt),
+                    "MMM dd,yyy"
+                  )}`}</p>
+                </span>
+                <span className="d-flex align-items-center flex-wrap gap-2">
+                  <Link
+                    to={`/user/${userinfo.userid}/followers`}
+                    style={{ color: "grey" }}
+                  >
+                    {userinfo.userHistory.followers
+                      ? userinfo.userHistory.followers.length
+                      : 0}{" "}
+                    followers
+                  </Link>
+                  <Link
+                    to={`/user/${userinfo.userid}/following`}
+                    style={{ color: "grey" }}
+                  >
+                    {userinfo.userHistory.followings
+                      ? userinfo.userHistory.followings.length
+                      : 0}{" "}
+                    following
+                  </Link>
+                </span>
+              </div>
+            </div>
+            {userid === userIdFromToken && (
+              <MDBBtn
+                color="primary"
+                onClick={() => navigate(`/user/${userinfo.userid}/edit`)}
+              >
+                Edit Profile
+              </MDBBtn>
+            )}
+            {userid !== userIdFromToken && (
+              <MDBBtn color="primary" onClick={connectUser}>
+                {userinfo?.userHistory?.followers &&
+                userinfo?.userHistory?.followers.includes(userIdFromToken)
+                  ? "Unfollow"
+                  : "Follow"}
+              </MDBBtn>
+            )}
           </div>
-        </div>
-      </div>
-      {showUserEditor && userinfo?.userid && (
-        <EditUser onClose={setShowUserEditor} userinfo={userinfo} />
-      )}
+        </MDBCard>
+        <>
+          <MDBTabs fill className="mb-3" style={{ maxWidth: "40rem" }}>
+            <MDBTabsItem>
+              <MDBTabsLink
+                onClick={() => setSelectedNav("posts")}
+                active={selectedNav === "posts"}
+              >
+                <MDBIcon fas icon="blog" className="me-2" /> Posts
+              </MDBTabsLink>
+            </MDBTabsItem>
+            <MDBTabsItem>
+              <MDBTabsLink
+                onClick={() => setSelectedNav("replies")}
+                active={selectedNav === "replies"}
+              >
+                <MDBIcon fas icon="comment-alt" className="me-2" /> Replies
+              </MDBTabsLink>
+            </MDBTabsItem>
+            <MDBTabsItem>
+              <MDBTabsLink
+                onClick={() => setSelectedNav("likes")}
+                active={selectedNav === "likes"}
+              >
+                <MDBIcon fas icon="heart" className="me-2" /> Likes
+              </MDBTabsLink>
+            </MDBTabsItem>
+          </MDBTabs>
+
+          <MDBTabsContent>
+            <MDBTabsPane show={selectedNav === "posts"}>
+              {userPostDetails}
+            </MDBTabsPane>
+            <MDBTabsPane show={selectedNav === "replies"}>
+              {userCommentedPosts}
+            </MDBTabsPane>
+            <MDBTabsPane show={selectedNav === "likes"}>
+              {userLikedPosts}
+            </MDBTabsPane>
+          </MDBTabsContent>
+        </>
+      </MDBContainer>
+      <Outlet context={{ userinfo }} />
       <ToastContainer />
     </Container>
   );
 };
 const Container = styled.div`
-  padding: 2rem;
-  .back {
-    transition: 0.2s ease-in-out;
-    &:hover {
-      color: rgb(58, 231, 102);
-      transform: scale(1.05) translateX(-5px);
-    }
+  .profile-container {
+    position: relative;
+    max-width: 40rem;
+    height: 20rem;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url(${({ image }) => image});
   }
-  .user-display {
-    display: flex;
-    flex-direction: column;
-    padding: 0.5rem;
-    gap: 0.5rem;
-    margin: 0 1rem;
-    border-radius: 0.25rem;
-    border: 1px solid rgb(182, 182, 182);
-
-    .header {
-      display: flex;
-      padding: 0.5rem;
-      gap: 1rem;
-      align-items: center;
-      svg {
-        color: var(--button);
-      }
-      .username {
-        margin: 0;
-        font-weight: 700;
-        font-size: 25px;
-      }
-      .edit-icon {
-        text-align: right;
-        cursor: pointer;
-        color: #969696;
-        transition: 0.3s ease-in-out;
-        &:hover {
-          transform: scale(1.1);
-          color: rgb(7, 119, 255);
-        }
-      }
-      .delete-icon {
-        text-align: right;
-        cursor: pointer;
-        color: #969696;
-        transition: 0.3s ease-in-out;
-        &:hover {
-          transform: scale(1.1);
-          color: rgb(255, 48, 7);
-        }
-      }
-      .active-status {
-        justify-self: flex-end;
+  .profile-info {
+    position: absolute;
+    bottom: 0;
+    max-height: 8rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    width: 100%;
+    .image-container {
+      margin-bottom: 3rem !important;
+    }
+    @media screen and (max-width: 576px) {
+      max-height: 17rem;
+      .image-container {
+        align-self: flex-start;
+        margin-bottom: 0 !important;
       }
     }
-    .user-info {
-      display: flex;
+    @media screen and (max-width: 384px) {
       flex-direction: column;
-      padding: 0.5rem;
-      p {
-        margin: 0;
-      }
-      .user-role {
-        font-weight: 700;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      }
-      .user-date {
-        font-family: Georgia, "Times New Roman", Times, serif;
-      }
-      .user-description {
-        font-family: Georgia, "Times New Roman", Times, serif;
-      }
-    }
-    .user-detail-history {
-      display: flex;
-      flex-direction: column;
-      padding: 0.5rem;
-      gap: 1rem;
-      border-radius: 0.25rem;
-      nav {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        padding: 0.25rem;
-        button {
-          margin: 0;
-          padding: 0.5rem;
-          outline: none;
-          border: none;
-          cursor: pointer;
-          font-weight: 600;
-          background-color: var(--button);
-          border-radius: 0.5rem;
-          transition: 0.2s ease-in-out;
-          &:hover {
-            background-color: rgb(14, 231, 97);
-          }
-          &.selected-btn {
-            background-color: rgb(14, 231, 97);
-          }
-        }
-      }
-      .selected-content {
-        border: rgb(182, 182, 182) solid 1px;
-        padding: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        overflow: auto;
-        height: 20rem;
-        &::-webkit-scrollbar {
-          width: 0.35rem;
-          &-thumb {
-            background-color: rgb(105, 242, 158);
-            width: 0.1rem;
-            border-radius: 1rem;
-          }
-        }
-        .nopost {
-          display: flex;
-          margin: auto;
-          font-family: Georgia, "Times New Roman", Times, serif;
-          font-size: large;
-          align-self: center;
-        }
-        .comment-container {
-          display: flex;
-          justify-content: space-evenly;
-          .comment-box {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            margin: 0;
-            width: 85%;
-            border-radius: 0.5rem;
-            border: 1px solid rgb(182, 182, 182);
-            .comment-detail {
-              display: flex;
-              width: 50%;
-              flex-direction: column;
-              p {
-                margin: 0;
-              }
-              span {
-                display: flex;
-                justify-content: flex-start;
-                align-items: center;
-                gap: 1rem;
-                margin: 0;
-                .user {
-                  font-weight: 600;
-                  font-size: medium;
-                }
-                .date {
-                  font-size: small;
-                  color: var(--text-normal);
-                }
-              }
-              .replying-to {
-                font-size: small;
-                color: var(--text-normal);
-              }
-            }
-          }
-        }
-      }
+      align-items: flex-start !important;
     }
   }
 `;

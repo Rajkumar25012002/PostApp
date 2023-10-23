@@ -8,6 +8,16 @@ const userHistorySchema = new mongoose.Schema({
   userCreatedAt: {
     type: Date,
   },
+  followers: [
+    {
+      type: String,
+    },
+  ],
+  followings: [
+    {
+      type: String,
+    },
+  ],
 });
 const userSchema = new mongoose.Schema({
   userid: {
@@ -17,6 +27,9 @@ const userSchema = new mongoose.Schema({
     type: String,
   },
   userProfilePic: {
+    type: String,
+  },
+  userCoverPic: {
     type: String,
   },
   userHistory: userHistorySchema,
@@ -41,7 +54,7 @@ const userSchema = new mongoose.Schema({
   deactivatedBy: {
     type: String,
     default: null,
-  }
+  },
 });
 const userCollection = mongoose.model("user", userSchema);
 export default userCollection;
