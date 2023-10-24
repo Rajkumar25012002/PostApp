@@ -93,7 +93,9 @@ export const logoutUser = async (_req, res, _next) => {
 };
 export const refreshTokenForUser = async (req, res, next) => {
   try {
+    console.log("cookie", req.cookies);
     const token = req.cookies.refreshToken;
+    console.log("token",token);
     if (!token) return res.send({ accessToken: null });
     let payload = null;
     try {
