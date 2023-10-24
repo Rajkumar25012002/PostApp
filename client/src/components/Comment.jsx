@@ -1,13 +1,16 @@
 import { Link } from "react-router-dom";
 import { MDBCard, MDBCardFooter, MDBIcon } from "mdb-react-ui-kit";
 import format from "date-fns/format";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateComment } from "../features/postSlice";
 import { useContext } from "react";
+import { getUserProfilePicById } from "../features/userSlice";
+import defaultProfilePic from "../assets/user.png";
 import { UserContext } from "../App";
 const Comment = ({ comment, currentPost }) => {
   const dispatch = useDispatch();
   const { user, userIdFromToken } = useContext(UserContext);
+  const userProfilePic=useSelector((state)=>getUserProfilePicById(state,comment.authorId))
   const handleLikeForComment = () => {
     dispatch(
       updateComment({
@@ -28,7 +31,13 @@ const Comment = ({ comment, currentPost }) => {
     >
       <div className="d-flex gap-1">
         <Link to={`/user/${comment.authorId}`} className="">
-          <MDBIcon size="lg" fas icon="user-circle" />
+        <img
+              src={userProfilePic ? userProfilePic : defaultProfilePic}
+              alt="img"
+              width={35}
+              height={35}
+              className="rounded-circle"
+            />
         </Link>
         <div className="comment-detail">
           <p className="m-0 fw-bold">{comment.author}</p>

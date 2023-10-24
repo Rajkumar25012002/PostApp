@@ -5,10 +5,15 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { UserContext } from "../App";
-import { getUserNameById, selectAllUsers } from "../features/userSlice";
+import {
+  getUserNameById,
+  selectAllUsers,
+  getUserProfilePicById,
+} from "../features/userSlice";
 import styled from "styled-components";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import ROLE from "./utils/USERROLE.js";
+import defaultUserPic from "../assets/user.png";
 import {
   MDBCard,
   MDBCardTitle,
@@ -24,6 +29,9 @@ let Post = ({ post }) => {
   const navigate = useNavigate();
   const { user, userIdFromToken, userRoleFromToken } = useContext(UserContext);
   const userName = useSelector((state) => getUserNameById(state, post.userid));
+  const userProfilePic = useSelector((state) =>
+    getUserProfilePicById(state, post.userid)
+  );
   const dispatch = useDispatch();
   let mentionedUsers = useSelector(selectAllUsers)
     .filter((user) => post.mentions.includes(user.user_name))
@@ -68,7 +76,7 @@ let Post = ({ post }) => {
   };
   return (
     <Container>
-      <MDBCard className="post p-2 w-sm-100">
+      <MDBCard className="post p-2 mb-1 shadow-5">
         {post.isRetweet && (
           <MDBCardTitle className="d-flex align-items-center  small gap-2 mx-4">
             <MDBIcon fas size="sm" icon="retweet" />
@@ -87,7 +95,13 @@ let Post = ({ post }) => {
         )}
         <div className="d-flex gap-2">
           <Link to={`/user/${post.userid}`}>
-            <MDBIcon size="2xl" className="mt-3" fas icon="user-circle" />
+            <img
+              src={userProfilePic ? userProfilePic : defaultUserPic}
+              alt="img"
+              width={35}
+              height={35}
+              className="rounded-circle"
+            />
           </Link>
           <div className="d-flex flex-column w-100">
             <MDBCardTitle className="m-0 mb-2">
@@ -208,13 +222,14 @@ const Container = styled.div`
         text-decoration: underline !important;
       }
     }
-    img {
+    .img-fluid {
       width: 100%;
       height: 10rem;
       border-radius: 0.25rem;
       object-fit: cover;
     }
-    @media screen and (max-width: 510px) {
+    margin: auto;
+    @media screen and (max-width: 675px) {
       width: 100%;
     }
   }

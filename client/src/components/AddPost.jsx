@@ -22,6 +22,7 @@ import {
   MDBTooltip,
   MDBRow,
   MDBCol,
+  MDBCard,
 } from "mdb-react-ui-kit";
 const AddPost = () => {
   const selectRef = useRef();
@@ -127,7 +128,7 @@ const AddPost = () => {
 
   return (
     <Container>
-      <MDBContainer className=" p-3 border post-container">
+      <MDBCard className=" p-3 border post-container">
         <div className="d-flex flex-column gap-2">
           <MDBTypography variant="h5">Post Something</MDBTypography>
           <hr />
@@ -255,19 +256,24 @@ const AddPost = () => {
             </div>
           </form>
         </div>
-      </MDBContainer>
+      </MDBCard>
       <ToastContainer />
     </Container>
   );
 };
 const Container = styled.div`
+  display: flex;
+  flex-direction: column;
   margin: 1rem 0;
   i {
     cursor: pointer;
   }
   .post-container {
-    max-width: 40rem;
-    min-width: 15rem;
+    width: 40rem;
+    margin: auto;
+    @media screen and (max-width: 675px) {
+      width: 100%;
+    }
   }
   .image-container {
     position: relative;

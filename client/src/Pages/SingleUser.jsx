@@ -10,6 +10,7 @@ import {
   getAllLikedPostsByUser,
   getAllCommentedPostsByUserId,
   getAllPost,
+  getStateStatus,
 } from "../features/postSlice";
 import { deactivateUser } from "../features/userSlice";
 import { getUserDetailsById, followUnfollowUser } from "../features/userSlice";
@@ -38,12 +39,21 @@ import {
   MDBTabsContent,
   MDBTabsPane,
   MDBTooltip,
+  MDBModalHeader,
+  MDBModal,
+  MDBModalDialog,
+  MDBModalContent,
+  MDBModalBody,
+  MDBModalFooter,
 } from "mdb-react-ui-kit";
+import PostSkeleton from "../components/Placeholders/PostSkeleton";
 const SingleUser = () => {
   const navigate = useNavigate();
   const { user, userIdFromToken, userRoleFromToken } = useContext(UserContext);
   const { userid } = useParams();
   const dispatch = useDispatch();
+  const status = useSelector(getStateStatus);
+  const [showConfirmBox, setShowConfirmBox] = useState(false);
   const [selectedNav, setSelectedNav] = useState("posts");
   const userinfo = useSelector((state) => getUserDetailsById(state, userid));
 
@@ -71,30 +81,24 @@ const SingleUser = () => {
     );
   const userStatus = useSelector(getAllUsersStatus);
   const userError = useSelector(getUserError);
-  const handleDeactivateUser = () => {
-    if (
-      window.confirm(
-        `Are you sure you want to ${
-          userinfo.isDeactivated ? "activate" : "deactivate"
-        } this user?`
-      )
-    ) {
-      dispatch(
-        deactivateUser({
-          details: {
-            userid: userinfo.userid,
-            deactivatedBy: userIdFromToken,
-          },
-          token: user.accessToken,
-        })
-      );
-      if (userStatus === "rejected") {
-        toast.error(userError, toastOptionError);
-      } else if (!userinfo.isDeactivated) {
-        toast.success("User deactivated Successfully", toastOptionSuccess);
-      } else {
-        toast.success("User activated Successfully", toastOptionSuccess);
-      }
+  const handleDeactivateUser = (e) => {
+    e.preventDefault();
+    setShowConfirmBox(false);
+    dispatch(
+      deactivateUser({
+        details: {
+          userid: userinfo.userid,
+          deactivatedBy: userIdFromToken,
+        },
+        token: user.accessToken,
+      })
+    );
+    if (userStatus === "rejected") {
+      toast.error(userError, toastOptionError);
+    } else if (!userinfo.isDeactivated) {
+      toast.success("User deactivated Successfully", toastOptionSuccess);
+    } else {
+      toast.success("User activated Successfully", toastOptionSuccess);
     }
   };
   const connectUser = () => {
@@ -164,18 +168,15 @@ const SingleUser = () => {
   useEffect(() => {
     dispatch(getAllPost());
   }, [userinfo?.isDeactivated]);
-  if (!userinfo?.user_name) {
-    return <div>Loading...</div>;
-  }
   return (
     <Container
       image={
-        userinfo.userCoverPic
+        userinfo?.userCoverPic
           ? userinfo.userCoverPic
           : "https://mdbootstrap.com/img/Photos/Others/images/76.jpg"
       }
     >
-      <MDBContainer className="mt-3 d-flex flex-column gap-3">
+      <MDBContainer className="mt-3 d-flex flex-column align-items-center gap-3">
         <Link to="/" className="align-self-start">
           <MDBIcon fas icon="arrow-left" />
           Back
@@ -203,7 +204,6 @@ const SingleUser = () => {
                     userinfo.userid === userinfo.deactivatedBy) && (
                     <MDBTooltip
                       tag="a"
-                      wrapperProps={{ href: "#" }}
                       title={userinfo.isDeactivated ? "Activate" : "Deactivate"}
                     >
                       <MDBIcon
@@ -212,7 +212,9 @@ const SingleUser = () => {
                         icon={
                           userinfo.isDeactivated ? "user-alt-slash" : "user-alt"
                         }
-                        onClick={handleDeactivateUser}
+                        onClick={() => {
+                          setShowConfirmBox(true);
+                        }}
                       />
                     </MDBTooltip>
                   )}
@@ -296,7 +298,11 @@ const SingleUser = () => {
           </div>
         </MDBCard>
         <>
-          <MDBTabs fill className="mb-3" style={{ maxWidth: "40rem" }}>
+          <MDBTabs
+            fill
+            className="mb-3 bg-light tabs"
+            style={{ maxWidth: "40rem" }}
+          >
             <MDBTabsItem>
               <MDBTabsLink
                 onClick={() => setSelectedNav("posts")}
@@ -323,19 +329,55 @@ const SingleUser = () => {
             </MDBTabsItem>
           </MDBTabs>
 
-          <MDBTabsContent>
+          <MDBTabsContent style={{ maxWidth: "40rem" }}>
             <MDBTabsPane show={selectedNav === "posts"}>
-              {userPostDetails}
+              {status === "loading" ? <PostSkeleton /> : userPostDetails}
             </MDBTabsPane>
             <MDBTabsPane show={selectedNav === "replies"}>
-              {userCommentedPosts}
+              {status === "loading" ? <PostSkeleton /> : userCommentedPosts}
             </MDBTabsPane>
             <MDBTabsPane show={selectedNav === "likes"}>
-              {userLikedPosts}
+              {status === "loading" ? <PostSkeleton /> : userLikedPosts}
             </MDBTabsPane>
           </MDBTabsContent>
         </>
       </MDBContainer>
+      <MDBModal
+        show={showConfirmBox}
+        tabIndex="-1"
+        onHide={() => setShowConfirmBox(false)}
+      >
+        <MDBModalDialog>
+          <MDBModalContent>
+            <MDBModalHeader>
+              <MDBBtn
+                className="btn-close"
+                color="none"
+                onClick={() => setShowConfirmBox(false)}
+              ></MDBBtn>
+            </MDBModalHeader>
+            <MDBModalBody style={{ fontSize: "1.25rem" }}>
+              {`Are you sure you want to ${
+                userinfo.isDeactivated ? "activate" : "deactivate"
+              } this user?`}
+            </MDBModalBody>
+            <MDBModalFooter>
+              <MDBBtn
+                color="danger"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowConfirmBox(false);
+                }}
+              >
+                Cancel
+              </MDBBtn>
+              <MDBBtn color="success" onClick={handleDeactivateUser}>
+                Confirm
+              </MDBBtn>
+            </MDBModalFooter>
+          </MDBModalContent>
+        </MDBModalDialog>
+      </MDBModal>
       <Outlet context={{ userinfo }} />
       <ToastContainer />
     </Container>
@@ -344,12 +386,21 @@ const SingleUser = () => {
 const Container = styled.div`
   .profile-container {
     position: relative;
-    max-width: 40rem;
+    width: 40rem;
     height: 20rem;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-image: url(${({ image }) => image});
+    @media screen and (max-width: 675px) {
+      width: 100%;
+    }
+  }
+  .tabs {
+    width: 40rem;
+    @media screen and (max-width: 675px) {
+      width: 100%;
+    }
   }
   .profile-info {
     position: absolute;

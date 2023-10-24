@@ -43,6 +43,7 @@ export const getAllPost = async (_req, res, next) => {
     const deactivatedUserIds = deactivatedUsers.map((user) => user.userid);
     const posts = await postCollection.find({
       userid: { $nin: deactivatedUserIds },
+      retweetedBy: { $nin: deactivatedUserIds },
     });
     res.send(posts);
   } catch (err) {

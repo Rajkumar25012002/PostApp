@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { updatedUser } from "../features/userSlice";
 import { useContext } from "react";
 import { UserContext } from "../App";
-import ROLE from "./utils/USERROLE.js";
+import ROLE from "../components/utils/USERROLE.js";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { getUserError, getAllUsersStatus } from "../features/userSlice";
 import { ToastContainer, toast } from "react-toastify";

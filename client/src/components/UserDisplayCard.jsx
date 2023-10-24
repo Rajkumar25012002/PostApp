@@ -1,4 +1,8 @@
-import { getUserDetailsById } from "../features/userSlice";
+import {
+  getUserDetailsById,
+  getUserProfilePicById,
+} from "../features/userSlice";
+import defaultUserPic from "../assets/user.png";
 import { useSelector } from "react-redux";
 import { useContext } from "react";
 import { UserContext } from "../App";
@@ -9,6 +13,9 @@ export default function UserDisplayCard({ userid }) {
   const dispatch = useDispatch();
   const { userIdFromToken, user } = useContext(UserContext);
   const userDetails = useSelector((state) => getUserDetailsById(state, userid));
+  const userProfilePic = useSelector((state) =>
+    getUserProfilePicById(state, userid)
+  );
   const connectUser = () => {
     dispatch(
       followUnfollowUser({
@@ -23,22 +30,25 @@ export default function UserDisplayCard({ userid }) {
   return (
     <div className="d-flex align-items-center gap-3 border rounded p-2 m-2">
       <img
-        src="https://mdbcdn.b-cdn.net/img/new/standard/nature/184.webp"
+        src={userProfilePic ? userProfilePic : defaultUserPic}
+        alt="img"
         width={50}
         height={50}
         className="rounded-circle"
       />
       <p className="m-0 fw-bold">{userDetails.user_name}</p>
-      <MDBBtn
-        color="primary"
-        style={{ marginLeft: "auto" }}
-        onClick={connectUser}
-      >
-        {userDetails?.userHistory?.followers &&
-        userDetails?.userHistory?.followers.includes(userIdFromToken)
-          ? "Unfollow"
-          : "Follow"}
-      </MDBBtn>
+      {userid !== userIdFromToken && (
+        <MDBBtn
+          color="primary"
+          style={{ marginLeft: "auto" }}
+          onClick={connectUser}
+        >
+          {userDetails?.userHistory?.followers &&
+          userDetails?.userHistory?.followers.includes(userIdFromToken)
+            ? "Unfollow"
+            : "Follow"}
+        </MDBBtn>
+      )}
     </div>
   );
 }

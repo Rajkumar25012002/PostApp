@@ -1,8 +1,8 @@
 import pkg from "jsonwebtoken";
 const { sign } = pkg;
 
-export const createAccesToken = (userid,userRole) => {
-  return sign({ userid ,userRole}, process.env.ACCESS_TOKEN_SECRET, {
+export const createAccesToken = (userid, userRole) => {
+  return sign({ userid, userRole }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
 };

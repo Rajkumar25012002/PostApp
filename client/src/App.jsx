@@ -7,7 +7,7 @@ import HomePage from "./Pages/HomePage";
 import styled from "styled-components";
 import SinglePost from "./Pages/SinglePost";
 import EditPost from "./Pages/EditPost";
-import EditUser from "./components/EditUser";
+import EditUser from "./Pages/EditUser";
 import { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminPage from "./Pages/AdminPage";
@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SingleUser from "./Pages/SingleUser";
 import { useSelector } from "react-redux";
+import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import { getUserDetailsById } from "./features/userSlice";
 import { toastOptionSuccess } from "./components/utils/toastOptions";
 import loadingImg from "./assets/loadingImg.gif";
@@ -24,7 +25,7 @@ import Connections from "./components/Connections";
 export const UserContext = createContext([]);
 
 function App() {
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -44,7 +45,8 @@ function App() {
     })
       .then((res) => res.json())
       .then((data) => toast.success(data.message, toastOptionSuccess))
-      .then(() => setUser({}));
+      .then(() => setUser(null));
+
     navigate("/login");
   };
   useEffect(() => {
@@ -63,8 +65,8 @@ function App() {
               accessToken: data.accessToken,
             });
           }
+          setLoading(false);
         });
-      setLoading(false);
     }
     checkRereshToken();
   }, []);
@@ -103,14 +105,56 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Navigation logout={handleLogOut} />}>
-            <Route path="/" element={<HomePage />}>
-              <Route path="edit/post/:id" element={<EditPost />} />
-              <Route path="post/:id" element={<SinglePost />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <HomePage />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                path="edit/post/:id"
+                element={
+                  <ProtectedRoute>
+                    <EditPost />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="post/:id"
+                element={
+                  <ProtectedRoute>
+                    <SinglePost />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
             <Route path="admin" element={<AdminPage />} />
-            <Route path="user/:userid" element={<SingleUser />}>
-              <Route path="edit" element={<EditUser />} />
-              <Route path=":connections" element={<Connections />} />
+            <Route
+              path="user/:userid"
+              element={
+                <ProtectedRoute>
+                  <SingleUser />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                path="edit"
+                element={
+                  <ProtectedRoute>
+                    <EditUser />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":connections"
+                element={
+                  <ProtectedRoute>
+                    <Connections />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
           </Route>
         </Routes>
@@ -119,11 +163,12 @@ function App() {
   );
 }
 const Container = styled.div`
-display: flex;
-flex-direction: column;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
   overflow-y: auto;
-  overflow-x:hidden ;
+  overflow-x: hidden;
+  background-color: #f5f5f5;
 `;
 export default App;

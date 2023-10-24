@@ -158,6 +158,8 @@ export const getAllUsersStatus = (state) => state.user.status;
 export const getUserError = (state) => state.user.err;
 export const getUserNameById = (state, userIdFromToken) =>
   state.user.users.find((user) => user.userid === userIdFromToken)?.user_name;
+export const getUserProfilePicById = (state, userIdFromToken) =>
+  state.user.users.find((user) => user.userid === userIdFromToken)?.userProfilePic;
 export const getUserIdByName = (state, userName) =>
   state.user.users.find((user) => user.user_name === userName)?.userid;
 export default userSlice.reducer;

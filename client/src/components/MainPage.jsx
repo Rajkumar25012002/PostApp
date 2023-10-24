@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { MDBBtnGroup, MDBContainer, MDBRadio } from "mdb-react-ui-kit";
 import { useState } from "react";
 import filterPostByLatest from "./utils/filterPostByLatest.js";
+import PostSkeleton from "./Placeholders/PostSkeleton.jsx";
 const MainPage = () => {
   const allPosts = useSelector(selectAllPosts);
   const status = useSelector(getStateStatus);
@@ -12,7 +13,7 @@ const MainPage = () => {
   const [latestBy, setLatestBy] = useState("");
   let displaycontent;
   if (status === "loading") {
-    displaycontent = <p>Loading...</p>;
+    displaycontent = [1, 2].map((index) => <PostSkeleton key={index} />);
   } else if (allPosts) {
     const filterePosts = filterPostByLatest(allPosts, latestBy);
     displaycontent =
@@ -26,7 +27,7 @@ const MainPage = () => {
     <Container>
       <MDBContainer
         style={{ maxWidth: "40rem" }}
-        className="my-3 d-flex align-items-center justify-content-between align-self-center"
+        className="my-3 d-flex flex-wrap gap-2 justify-content-between align-self-center"
       >
         <MDBBtnGroup>
           <MDBRadio
@@ -85,7 +86,7 @@ const MainPage = () => {
           </MDBBtnGroup>
         )}
       </MDBContainer>
-      <div className="post-display d-flex flex-column gap-1 mx-1">
+      <div className="post-display d-flex flex-column gap-1">
         {displaycontent}
       </div>
     </Container>
@@ -94,12 +95,6 @@ const MainPage = () => {
 const Container = styled.div`
   .btn {
     border-radius: 0;
-  }
-  .post-display {
-    align-items: center;
-    @media screen and (max-width: 510px) {
-      align-items: normal;
-    }
   }
 `;
 export default MainPage;
