@@ -5,6 +5,7 @@ import "dotenv/config";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/userRoutes.js";
 import postRouter from "./routes/postRoutes.js";
+import cookieParser from "cookie-parser";
 const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
