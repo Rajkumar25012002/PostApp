@@ -19,7 +19,7 @@ export const sendAccessToken = (res, req, accessToken) => {
 };
 export const sendRefreshToken = (res, refreshToken) => {
   res.cookie("refreshToken", refreshToken, {
-    domain:"rockys-post-app.netlify.app",
+    domain:".rockys-post-app.netlify.app",
     httpOnly: true,
     secure: true,
     sameSite: "none",
