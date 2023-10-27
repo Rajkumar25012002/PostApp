@@ -1,1 +1,1 @@
-export const URL ="https://chat-app-backend-xfca.onrender.com";
+export const URL ="https://blog-post-backend-k70d.onrender.com";
