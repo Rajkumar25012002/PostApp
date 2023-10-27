@@ -3,7 +3,7 @@ import Post from "./Post.jsx";
 import { selectAllPosts, getStateStatus } from "../features/postSlice";
 import { useSelector } from "react-redux";
 import { MDBBtnGroup, MDBContainer, MDBRadio } from "mdb-react-ui-kit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import filterPostByLatest from "./utils/filterPostByLatest.js";
 import PostSkeleton from "./Placeholders/PostSkeleton.jsx";
 const MainPage = () => {
@@ -23,6 +23,9 @@ const MainPage = () => {
         <p className="text-center m-0">No Post Available</p>
       );
   }
+  useEffect(() => {
+    
+  },[status]);
   return (
     <Container>
       <MDBContainer
@@ -35,7 +38,7 @@ const MainPage = () => {
             btnColor="secondary"
             id="btn-radio2"
             name="options"
-            checked={type === "all"}
+            defaultChecked={type === "all"}
             wrapperTag="span"
             label="All"
             onClick={() => {
@@ -49,7 +52,7 @@ const MainPage = () => {
             btnColor="secondary"
             id="btn-radio3"
             name="options"
-            checked={type === "latest"}
+            defaultChecked={type === "latest"}
             wrapperTag="span"
             onClick={() => {
               setType("latest");
@@ -67,7 +70,7 @@ const MainPage = () => {
               id="btn-radio5"
               name="options"
               wrapperTag="span"
-              checked={latestBy === "day"}
+              defaultChecked={latestBy === "day"}
               onClick={() => setLatestBy("day")}
               value={"day"}
               label="Day"
@@ -78,7 +81,7 @@ const MainPage = () => {
               id="btn-radio4"
               onClick={() => setLatestBy("week")}
               value={"week"}
-              checked={latestBy === "week"}
+              defaultChecked={latestBy === "week"}
               name="options"
               wrapperTag="span"
               label="Week"

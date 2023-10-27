@@ -1,17 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
-import Post from "../components/Post";
 import { Outlet, useParams } from "react-router-dom";
-import { FcDownRight } from "react-icons/fc";
 import { format } from "date-fns";
 import { useSelector } from "react-redux";
-import {
-  selectPostByUserId,
-  getAllLikedPostsByUser,
-  getAllCommentedPostsByUserId,
-  getAllPost,
-  getStateStatus,
-} from "../features/postSlice";
 import { deactivateUser } from "../features/userSlice";
 import { getUserDetailsById, followUnfollowUser } from "../features/userSlice";
 import { useContext } from "react";
@@ -26,7 +17,6 @@ import {
   toastOptionError,
   toastOptionSuccess,
 } from "../components/utils/toastOptions";
-import Comment from "../components/Comment";
 import { useNavigate } from "react-router-dom";
 import {
   MDBBtn,
@@ -46,41 +36,29 @@ import {
   MDBModalBody,
   MDBModalFooter,
 } from "mdb-react-ui-kit";
-import PostSkeleton from "../components/Placeholders/PostSkeleton";
+import UserLikedPost from "../components/UserLikedPost";
+import UserCommentedPost from "../components/UserCommentedPost";
+import UserPost from "../components/UserPost";
+import {
+  getUserCommentedPosts,
+  getUserLikedPosts,
+  getUserPosts,
+} from "../features/postSlice";
 const SingleUser = () => {
   const navigate = useNavigate();
   const { user, userIdFromToken, userRoleFromToken } = useContext(UserContext);
   const { userid } = useParams();
   const dispatch = useDispatch();
-  const status = useSelector(getStateStatus);
   const [showConfirmBox, setShowConfirmBox] = useState(false);
   const [selectedNav, setSelectedNav] = useState("posts");
   const userinfo = useSelector((state) => getUserDetailsById(state, userid));
-
-  const selectUserLikedPosts = useSelector((state) =>
-    getAllLikedPostsByUser(state, userinfo?.userid)
-  );
-  const selectUserPost = useSelector((state) =>
-    selectPostByUserId(state, userinfo?.userid)
-  );
-  const selectCommentedPosts = useSelector((state) =>
-    getAllCommentedPostsByUserId(state, userinfo?.userid)
-  );
-  const userPostDetails =
-    selectUserPost.length > 0 ? (
-      selectUserPost
-        .slice()
-        .sort((a, b) => b.datePosted.localeCompare(a.datePosted))
-        .map((post, index) => {
-          return <Post post={post} key={index} />;
-        })
-    ) : (
-      <div style={{ textAlign: "center", maxWidth: "40rem" }}>
-        You have not posted yet
-      </div>
-    );
   const userStatus = useSelector(getAllUsersStatus);
   const userError = useSelector(getUserError);
+  useEffect(() => {
+    dispatch(getUserPosts(userid));
+    dispatch(getUserCommentedPosts(userid));
+    dispatch(getUserLikedPosts(userid));
+  }, [userid]);
   const handleDeactivateUser = (e) => {
     e.preventDefault();
     setShowConfirmBox(false);
@@ -112,62 +90,7 @@ const SingleUser = () => {
       })
     );
   };
-  useEffect(() => {
-    if (userStatus === "rejected") {
-      toast.error(userError, toastOptionError);
-    }
-    if (userStatus === "updated") {
-      toast.success("User updated Successfully", toastOptionSuccess);
-    }
-  }, [userStatus]);
-  const userLikedPosts =
-    selectUserLikedPosts.length > 0 ? (
-      selectUserLikedPosts
-        .slice()
-        .sort((a, b) => b.datePosted.localeCompare(a.datePosted))
-        .map((post, index) => {
-          return <Post post={post} key={index} />;
-        })
-    ) : (
-      <div style={{ textAlign: "center", maxWidth: "40rem" }}>
-        You have not liked any post yet
-      </div>
-    );
-  const userCommentedPosts =
-    selectCommentedPosts.length > 0 ? (
-      selectCommentedPosts
-        .slice()
-        .sort((a, b) => b.datePosted.localeCompare(a.datePosted))
-        .map((post, index) => {
-          return (
-            <>
-              <Post post={post} key={index} />
-              {post.comments.map((comment, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="d-flex gap-1 my-2 align-items-center"
-                  >
-                    {comment.authorId === userinfo.userid && (
-                      <>
-                        <FcDownRight size={"3rem"} />
-                        <Comment comment={comment} currentPost={post} />
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </>
-          );
-        })
-    ) : (
-      <div style={{ textAlign: "center", maxWidth: "40rem" }}>
-        You have not commented on any post yet
-      </div>
-    );
-  useEffect(() => {
-    dispatch(getAllPost());
-  }, [userinfo?.isDeactivated]);
+
   return (
     <Container
       image={
@@ -331,13 +254,13 @@ const SingleUser = () => {
 
           <MDBTabsContent style={{ maxWidth: "40rem" }}>
             <MDBTabsPane show={selectedNav === "posts"}>
-              {status === "loading" ? <PostSkeleton /> : userPostDetails}
+              <UserPost userid={userid} userinfo={userinfo} />
             </MDBTabsPane>
             <MDBTabsPane show={selectedNav === "replies"}>
-              {status === "loading" ? <PostSkeleton /> : userCommentedPosts}
+              <UserCommentedPost userid={userid} userinfo={userinfo} />
             </MDBTabsPane>
             <MDBTabsPane show={selectedNav === "likes"}>
-              {status === "loading" ? <PostSkeleton /> : userLikedPosts}
+              <UserLikedPost userid={userid} userinfo={userinfo} />
             </MDBTabsPane>
           </MDBTabsContent>
         </>

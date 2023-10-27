@@ -8,8 +8,8 @@ import styled from "styled-components";
 import SinglePost from "./Pages/SinglePost";
 import EditPost from "./Pages/EditPost";
 import EditUser from "./Pages/EditUser";
-import { createContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { createContext, useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import AdminPage from "./Pages/AdminPage";
 import jwtDecode from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
@@ -22,13 +22,27 @@ import { toastOptionSuccess } from "./components/utils/toastOptions";
 import loadingImg from "./assets/loadingImg.gif";
 import { URL } from "./components/utils/API";
 import Connections from "./components/Connections";
+import { useDispatch } from "react-redux";
+import {
+  getLimitedPost,
+  getPostPerPage,
+  getTotalPosts,
+  getPostsFetched,
+  getPostLoading,
+} from "./features/postSlice";
 export const UserContext = createContext([]);
 
 function App() {
   const [user, setUser] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
+  const containerRef = useRef();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const totalPosts = useSelector(getTotalPosts);
+  const postsFetched = useSelector(getPostsFetched);
+  const isPostFetching = useSelector(getPostLoading);
+  const postPerPage = useSelector(getPostPerPage);
   const userIdFromToken =
     user?.accessToken && jwtDecode(user.accessToken).userid;
   const currentUserDetails = useSelector((state) =>
@@ -70,6 +84,42 @@ function App() {
     }
     checkRereshToken();
   }, []);
+  const location = useLocation();
+  const handleScroll = async () => {
+    if (!containerRef.current) return;
+
+    const { scrollHeight, scrollTop, clientHeight } = containerRef.current;
+    const scrollPosition = scrollTop + clientHeight;
+    const scrollTrigger = scrollHeight - 5;
+
+    if (scrollPosition >= scrollTrigger) {
+      if (
+        postsFetched >= 3 &&
+        postsFetched < totalPosts &&
+        !isPostFetching &&
+        location.pathname === "/"
+      ) {
+        dispatch(
+          getLimitedPost({
+            postsFetched: postsFetched,
+            postsPerPage: postPerPage,
+          })
+        );
+      }
+    }
+  };
+  useEffect(() => {
+    const container = containerRef.current;
+    if (postPerPage >= 0 && postsFetched >= 0) {
+      if (container) {
+        container.addEventListener("scroll", handleScroll);
+
+        return () => {
+          container.removeEventListener("scroll", handleScroll);
+        };
+      }
+    }
+  });
   if (loading) {
     return (
       <div
@@ -88,7 +138,7 @@ function App() {
     );
   }
   return (
-    <Container>
+    <Container ref={containerRef}>
       <ToastContainer />
       <UserContext.Provider
         value={{

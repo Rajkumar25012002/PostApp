@@ -53,6 +53,113 @@ export const getAllPost = async (_req, res, next) => {
     });
   }
 };
+export const getLimitedPost = async (req, res, next) => {
+  try {
+    let { postsPerPage, skipPost } = req.query;
+    const totalPosts = await postCollection.count();
+    postsPerPage =
+      postsPerPage <= totalPosts - skipPost
+        ? postsPerPage
+        : totalPosts - skipPost;
+    const deactivatedUsers = await userCollection.find(
+      { isDeactivated: true },
+      { userid: 1, _id: 0 }
+    );
+    const deactivatedUserIds = deactivatedUsers.map((user) => user.userid);
+    const posts = await postCollection
+      .find({
+        userid: { $nin: deactivatedUserIds },
+      })
+      .sort({ datePosted: -1 })
+      .skip(skipPost)
+      .limit(postsPerPage);
+
+    res.send({ posts, totalPosts });
+  } catch (err) {
+    res.status(400).send({
+      error: "Bad Request",
+      message: "Can't get posts",
+    });
+  }
+};
+export const getUserPosts = async (req, res, next) => {
+  try {
+    const { userid } = req.query;
+    const deactivatedUsers = await userCollection.find(
+      { isDeactivated: true },
+      { userid: 1, _id: 0 }
+    );
+    const deactivatedUserIds = deactivatedUsers.map((user) => user.userid);
+    const posts = await postCollection.find(
+      {
+        $and: [{ userid: userid }, { userid: { $nin: deactivatedUserIds } }],
+      },
+      { _id: 0, __v: 0 }
+    );
+    res.send(posts);
+  } catch (err) {
+    res.status(400).send({
+      error: "Bad Request",
+      message: "Can't get deactivated user's posts",
+    });
+  }
+};
+export const getUserLikedPosts = async (req, res, next) => {
+  const { userid } = req.query;
+  try {
+    const deactivatedUsers = await userCollection.find(
+      { isDeactivated: true },
+      { userid: 1, _id: 0 }
+    );
+    const deactivatedUserIds = deactivatedUsers.map((user) => user.userid);
+    const isUserDeactivated = deactivatedUserIds.includes(userid);
+    if (isUserDeactivated) {
+      res.status(400).send({
+        error: "Bad Request",
+        message: "Can't get deactivated user's posts",
+      });
+      return;
+    }
+    const posts = await postCollection.find({
+      userid: { $nin: deactivatedUserIds },
+      likes: { $elemMatch: { $eq: userid } },
+    });
+    res.send(posts);
+  } catch (err) {
+    res.status(400).send({
+      error: "Bad Request",
+      message: "Can't get deactivated user's posts",
+    });
+  }
+};
+export const getUserCommentedPosts = async (req, res, next) => {
+  const { userid } = req.query;
+  try {
+    const deactivatedUsers = await userCollection.find(
+      { isDeactivated: true },
+      { userid: 1, _id: 0 }
+    );
+    const deactivatedUserIds = deactivatedUsers.map((user) => user.userid);
+    const isUserDeactivated = deactivatedUserIds.includes(userid);
+    if (isUserDeactivated) {
+      res.status(400).send({
+        error: "Bad Request",
+        message: "Can't get deactivated user's posts",
+      });
+      return;
+    }
+    const post = await postCollection.find({
+      comments: { $elemMatch: { authorId: userid } },
+      userid: { $nin: deactivatedUserIds },
+    });
+    res.send(post);
+  } catch (err) {
+    res.status(400).send({
+      error: "Bad Request",
+      message: "Can't get deactivated user's posts",
+    });
+  }
+};
 export const addEmoji = async (req, res, next) => {
   try {
     const { postId, feed, userid } = req.body;

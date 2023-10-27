@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import styled from "styled-components";
 import { useState, useContext } from "react";
-import { useNavigate ,Link} from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { UserContext } from "../App";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,12 +17,14 @@ import {
   MDBBtn,
   MDBCard,
   MDBCardBody,
+  MDBSpinner,
 } from "mdb-react-ui-kit";
 import logo from "../assets/logo.png";
 const Login = () => {
   const { user, setUser } = useContext(UserContext);
-  const [user_name, setUser_name] = useState();
-  const [password, setPassword] = useState();
+  const [user_name, setUser_name] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLogging, setIsLogging] = useState(false);
   const navigate = useNavigate();
   const canSave = password && user_name;
   useEffect(() => {
@@ -32,6 +34,7 @@ const Login = () => {
   }, [user, navigate]);
   const handleSubmit = (e) => {
     e.preventDefault();
+    setIsLogging(true);
     fetch(`${URL}/user/login`, {
       method: "post",
       credentials: "include",
@@ -50,6 +53,7 @@ const Login = () => {
             accessToken: data.accessToken,
           });
           toast.success(data.message, toastOptionSuccess);
+          setIsLogging(false);
           navigate("/");
         } else if (data.status === false) {
           toast.error(data.message, toastOptionError);
@@ -122,7 +126,7 @@ const Login = () => {
                   <div className=" d-flex justify-content-center pb-3">
                     <h2>LOGIN</h2>
                   </div>
-                  <form>
+                  <form onSubmit={handleSubmit}>
                     <MDBInput
                       className="mb-2"
                       label="Username"
@@ -147,14 +151,20 @@ const Login = () => {
                       color="primary"
                       className="btn-block mb-4"
                       type="submit"
-                      onClick={handleSubmit}
-                      disabled={!canSave}
+                      disabled={!canSave || isLogging}
                     >
-                      Sign in
+                      <MDBSpinner
+                        size="sm"
+                        role="status"
+                        tag="span"
+                        className="me-2"
+                        style={{ display: isLogging ? "inline-block" : "none" }}
+                      />
+                      {isLogging ? "Signing in..." : "Sign in"}
                     </MDBBtn>
                     <MDBRow className="mb-2">
                       <MDBCol className="d-flex justify-content-center">
-                        <a href="#!">Forgot password?</a>
+                        <Link to="/login">Forgot password?</Link>
                       </MDBCol>
                     </MDBRow>
                     <div className="text-center">
@@ -177,7 +187,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
 
-  .login{
+  .login {
     max-width: 30rem;
     margin: auto;
   }

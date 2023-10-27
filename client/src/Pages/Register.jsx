@@ -126,7 +126,10 @@ const Register = () => {
                   <div className=" d-flex justify-content-center pb-3">
                     <h2>REGISTER</h2>
                   </div>
-                  <form className="d-flex flex-column gap-1">
+                  <form
+                    className="d-flex flex-column gap-1"
+                    onSubmit={handleSubmit}
+                  >
                     <MDBInput
                       label="Username"
                       icon="user"
@@ -179,7 +182,6 @@ const Register = () => {
                       color="primary"
                       className="btn-block mb-4"
                       type="submit"
-                      onClick={handleSubmit}
                       disabled={!canSave}
                     >
                       Sign up

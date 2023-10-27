@@ -29,14 +29,16 @@ const Navigation = ({ logout }) => {
       <Container>
         <MDBNavbar expand="lg" sticky light bgColor="light">
           <MDBContainer fluid>
-            <MDBNavbarBrand href="/">
-              <img
-                src={logo}
-                height="40"
-                alt="Social Network Logo"
-                loading="lazy"
-              />
-              MINDWAVE
+            <MDBNavbarBrand>
+              <Link to="/">
+                <img
+                  src={logo}
+                  height="40"
+                  alt="Social Network Logo"
+                  loading="lazy"
+                />
+                MINDWAVE
+              </Link>
             </MDBNavbarBrand>
             <SearchBox />
             <MDBNavbarToggler
@@ -68,7 +70,7 @@ const Navigation = ({ logout }) => {
                       </MDBTypography>
                     </MDBDropdownToggle>
                     <MDBDropdownMenu>
-                      <MDBDropdownItem link href={`/user/${userId}`}>
+                      <MDBDropdownItem link>
                         <Link to={`/user/${userId}`}>
                           <MDBIcon fas icon="user" />
                           Profile
