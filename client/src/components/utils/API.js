@@ -1,1 +1,1 @@
-export const URL ="http://localhost:8000";
+export const URL ="https://chat-app-backend-xfca.onrender.com";
