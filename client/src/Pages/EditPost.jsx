@@ -36,6 +36,7 @@ import {
 } from "../features/postSlice";
 import { useSelector } from "react-redux";
 import { selectAllUsers } from "../features/userSlice";
+import SelectVisibility from "../InputElements/SelectVisibility";
 export default function EditPost() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ export default function EditPost() {
     link: postDetails.link,
     mentions: postDetails.mentions,
     images: postDetails.images,
+    visibility: postDetails.visibility,
   });
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLink, setShowLink] = useState(false);
@@ -61,7 +63,11 @@ export default function EditPost() {
   const closeModel = () => {
     navigate(-1);
   };
-
+  const visibilityOptions = [
+    { value: "Public", label: "Public", icon: "globe" },
+    { value: "Private", label: "Private", icon: "lock" },
+    { value: "Circle", label: "Circle", icon: "user-friends" },
+  ];
   const updatePoster = (e) => {
     e.preventDefault();
     if (currentPost.tag && currentPost.content) {
@@ -75,6 +81,7 @@ export default function EditPost() {
             updatedDate: new Date().toISOString(),
             mentions: currentPost.mentions,
             link: currentPost.link,
+            visibility: currentPost.visibility,
           },
           token: user.accessToken,
         })
@@ -157,7 +164,7 @@ export default function EditPost() {
   };
   return (
     <Container>
-      <MDBModal show={true} tabIndex="-1"  onHide={() => navigate(-1)}>
+      <MDBModal show={true} tabIndex="-1" onHide={() => navigate(-1)}>
         <MDBModalDialog>
           <MDBModalContent>
             <MDBModalHeader>
@@ -172,7 +179,27 @@ export default function EditPost() {
               {postDetails && (
                 <MDBContainer className=" p-3 border post-container">
                   <div className="d-flex flex-column gap-2">
-                    <form className="d-flex flex-column gap-2">
+                    <form className="d-flex flex-column gap-3">
+                      <div
+                        className="visibility-container d-flex align-items-center border"
+                        style={{ borderRadius: "1.5rem", width: "max-content" }}
+                      >
+                        <MDBIcon
+                          style={{ paddingLeft: "1rem", width: "2.15rem" }}
+                          fas
+                          icon={
+                            visibilityOptions.filter(
+                              (option) =>
+                                option.value === currentPost.visibility
+                            )[0].icon
+                          }
+                        />
+                        <SelectVisibility
+                          options={visibilityOptions}
+                          post={currentPost}
+                          setPost={setCurrentPost}
+                        />
+                      </div>
                       <MDBTextArea
                         label="Content"
                         id="textAreaExample"
@@ -215,29 +242,22 @@ export default function EditPost() {
                           onChange={handleChange}
                         />
                       )}
-                      <div className="d-flex my-3 gap-4  flex-wrap align-items-center">
-                        <MDBTooltip
-                          tag="a"
-                          wrapperProps={{ href: "#" }}
-                          title="Add link"
-                        >
+                      <div className="d-flex flex-wrap align-items-center">
+                        <MDBTooltip tag="a" title="Add link">
                           <MDBIcon
                             fas
                             icon="link"
                             size="md"
+                            className="mx-2"
                             onClick={() => setShowLink(!showLink)}
                           ></MDBIcon>
                         </MDBTooltip>
-                        <MDBTooltip
-                          tag="a"
-                          wrapperProps={{ href: "#" }}
-                          title="Add emoji"
-                        >
+                        <MDBTooltip tag="a" title="Add emoji">
                           <div className="emoji-container">
                             <MDBIcon
                               far
                               icon="grin"
-                              className="emoji"
+                              className="emoji mx-2"
                               size="md"
                               onClick={() =>
                                 setShowEmojiPicker(!showEmojiPicker)
@@ -253,11 +273,7 @@ export default function EditPost() {
                             )}
                           </div>
                         </MDBTooltip>
-                        <MDBTooltip
-                          tag="a"
-                          wrapperProps={{ href: "#" }}
-                          title="Add images"
-                        >
+                        <MDBTooltip tag="a" title="Add images">
                           <input
                             type="file"
                             label=""
@@ -267,9 +283,15 @@ export default function EditPost() {
                             onChange={(e) => updateImageForPost(e)}
                           />
                           <label htmlFor="updateImage">
-                            <MDBIcon fas icon="image" size="md" />
+                            <MDBIcon
+                              fas
+                              icon="image"
+                              className="mx-2"
+                              size="md"
+                            />
                           </label>
                         </MDBTooltip>
+
                         {currentPost.images && (
                           <MDBContainer className="m-1">
                             <MDBRow className="g-1">

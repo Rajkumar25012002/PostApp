@@ -41,6 +41,9 @@ const postSchema = new mongoose.Schema({
   lastUpdated: {
     type: String,
   },
+  visibility: {
+    type: String,
+  },
   title: {
     type: String,
   },

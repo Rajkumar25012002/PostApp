@@ -56,6 +56,7 @@ const Login = () => {
           setIsLogging(false);
           navigate("/");
         } else if (data.status === false) {
+          setIsLogging(false);
           toast.error(data.message, toastOptionError);
         }
       });

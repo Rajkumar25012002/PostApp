@@ -6,26 +6,34 @@ import { MDBBtnGroup, MDBContainer, MDBRadio } from "mdb-react-ui-kit";
 import { useEffect, useState } from "react";
 import filterPostByLatest from "./utils/filterPostByLatest.js";
 import PostSkeleton from "./Placeholders/PostSkeleton.jsx";
+import filterPostByVisibility from "./utils/filterPostByVisibility.js";
+import { UserContext } from "../App.jsx";
+import { useContext } from "react";
 const MainPage = () => {
   const allPosts = useSelector(selectAllPosts);
   const status = useSelector(getStateStatus);
   const [type, setType] = useState("all");
   const [latestBy, setLatestBy] = useState("");
+  const { userInfo } = useContext(UserContext);
   let displaycontent;
   if (status === "loading") {
     displaycontent = [1, 2].map((index) => <PostSkeleton key={index} />);
   } else if (allPosts) {
-    const filterePosts = filterPostByLatest(allPosts, latestBy);
+    const filterPostsByLatest = filterPostByLatest(allPosts, latestBy);
+    const filterPostsByVisibility = filterPostByVisibility(
+      filterPostsByLatest,
+      userInfo
+    );
     displaycontent =
-      filterePosts.length > 0 ? (
-        filterePosts.map((post, index) => <Post key={index} post={post} />)
+      filterPostsByVisibility.length > 0 ? (
+        filterPostsByVisibility.map((post, index) => (
+          <Post key={index} post={post} />
+        ))
       ) : (
         <p className="text-center m-0">No Post Available</p>
       );
   }
-  useEffect(() => {
-    
-  },[status]);
+  useEffect(() => {}, [status]);
   return (
     <Container>
       <MDBContainer

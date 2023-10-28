@@ -12,6 +12,7 @@ export const addPost = async (req, res, next) => {
       link,
       images,
       mentions,
+      visibility
     } = req.body;
     const postData = {
       postId: nanoid(),
@@ -24,6 +25,7 @@ export const addPost = async (req, res, next) => {
       link: link,
       images: images,
       mentions: mentions,
+      visibility: visibility
     };
     const post = await postCollection.insertMany([postData]);
     res.send(post);
@@ -263,7 +265,7 @@ export const updateComment = async (req, res, next) => {
 };
 export const updatePost = async (req, res, next) => {
   try {
-    const { postId, title, content, updatedDate, mentions, link, images } =
+    const { postId, title, content, updatedDate, mentions, link, images ,visibility} =
       req.body;
     const post = await postCollection.findOneAndUpdate(
       { postId: postId },
@@ -275,6 +277,7 @@ export const updatePost = async (req, res, next) => {
           mentions: mentions,
           images: images,
           link: link,
+          visibility: visibility
         },
       },
       { new: true }

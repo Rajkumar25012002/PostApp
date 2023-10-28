@@ -24,6 +24,7 @@ import {
   MDBCol,
   MDBCard,
 } from "mdb-react-ui-kit";
+import SelectVisibility from "../InputElements/SelectVisibility";
 const AddPost = () => {
   const selectRef = useRef();
   const allUsers = useSelector(selectAllUsers).map((user) => {
@@ -36,6 +37,7 @@ const AddPost = () => {
     link: "",
     mentions: [],
     images: [],
+    visibility: "Public",
   });
   const [addPostRequest, setAddPostRequest] = useState("idle");
   const [showLink, setShowLink] = useState(false);
@@ -43,6 +45,11 @@ const AddPost = () => {
   const postStatus = useSelector(getStateStatus);
   const postErr = useSelector(getStateErr);
   const dispatch = useDispatch();
+  const visibilityOptions = [
+    { value: "Public", label: "Public", icon: "globe" },
+    { value: "Private", label: "Private", icon: "lock" },
+    { value: "Circle", label: "Circle", icon: "user-friends" },
+  ];
   const addPoster = (e) => {
     e.preventDefault();
     if (post.tag && post.content && addPostRequest === "idle") {
@@ -59,6 +66,7 @@ const AddPost = () => {
               link: post.link,
               images: post.images,
               mentions: post.mentions,
+              visibility: post.visibility,
             },
             token: user.accessToken,
           })
@@ -70,6 +78,7 @@ const AddPost = () => {
           link: "",
           images: [],
           mentions: [],
+          visibility: "PUBLIC",
         });
 
         if (postStatus === "succeeded") {
@@ -172,25 +181,22 @@ const AddPost = () => {
                 onChange={handleChange}
               />
             )}
-            <div className="d-flex my-0 gap-4  flex-wrap align-items-center">
-              <MDBTooltip tag="a" wrapperProps={{ href: "#" }} title="Add link">
+            <div className="d-flex my-0 flex-wrap align-items-center">
+              <MDBTooltip tag="a" title="Add link">
                 <MDBIcon
                   fas
                   icon="link"
                   size="md"
+                  className="mx-2"
                   onClick={() => setShowLink(!showLink)}
                 ></MDBIcon>
               </MDBTooltip>
-              <MDBTooltip
-                tag="a"
-                wrapperProps={{ href: "#" }}
-                title="Add emoji"
-              >
+              <MDBTooltip tag="a" title="Add emoji">
                 <div className="emoji-container">
                   <MDBIcon
                     far
                     icon="grin"
-                    className="emoji"
+                    className="emoji mx-2"
                     size="md"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   ></MDBIcon>
@@ -204,11 +210,7 @@ const AddPost = () => {
                   )}
                 </div>
               </MDBTooltip>
-              <MDBTooltip
-                tag="a"
-                wrapperProps={{ href: "#" }}
-                title="Add images"
-              >
+              <MDBTooltip tag="a" title="Add images">
                 <input
                   type="file"
                   label=""
@@ -218,11 +220,11 @@ const AddPost = () => {
                   onChange={addImageForPost}
                 />
                 <label htmlFor="imageForPost">
-                  <MDBIcon fas icon="image" size="md" />
+                  <MDBIcon fas icon="image" className="mx-2" size="md" />
                 </label>
               </MDBTooltip>
               {post.images && (
-                <MDBContainer className="m-1">
+                <MDBContainer className="my-1">
                   <MDBRow className="g-1">
                     {post.images.map((image, index) => (
                       <MDBCol md="6" key={index}>
@@ -244,12 +246,27 @@ const AddPost = () => {
                   </MDBRow>
                 </MDBContainer>
               )}
-              <div className="d-flex justify-content-end w-100">
-                <MDBBtn
-                  color="primary"
-                  style={{ alignSelf: "flex-end" }}
-                  onClick={addPoster}
+              <div className="d-flex justify-content-between w-100">
+                <div
+                  className="visibility-container d-flex align-items-center border"
+                  style={{ borderRadius: "1.5rem" }}
                 >
+                  <MDBIcon
+                    style={{ paddingLeft: "1rem", width: "2.15rem" }}
+                    fas
+                    icon={
+                      visibilityOptions.filter(
+                        (option) => option.value === post.visibility
+                      )[0]?.icon
+                    }
+                  />
+                  <SelectVisibility
+                    options={visibilityOptions}
+                    post={post}
+                    setPost={setPost}
+                  />
+                </div>
+                <MDBBtn color="primary" onClick={addPoster}>
                   Post
                 </MDBBtn>
               </div>

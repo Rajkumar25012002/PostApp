@@ -62,6 +62,7 @@ export const loginUser = async (req, res, next) => {
       const valid = await compare(password, user.password);
       if (!valid) {
         res.send({ message: "Invalid Password!,try again", status: false });
+        return;
       }
       const accessToken = createAccesToken(user.userid, user.userRole);
       const refreshToken = createRefreshToken(user.userid);
